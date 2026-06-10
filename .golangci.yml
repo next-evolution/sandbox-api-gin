@@ -1,0 +1,40 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck       # エラーの戻り値を無視していないかチェック
+    - govet          # go vetによる静的解析
+    - ineffassign    # 無効な代入の検出
+    - staticcheck    # 高度な静的解析
+    - unused         # 未使用のコード検出
+    - misspell       # スペルミスの検出
+    - gocritic       # 多様なコードレビュー指摘
+    - noctx          # context.Background()を直接使っているHTTPリクエストの検出
+    - bodyclose      # HTTPレスポンスbodyのcloseチェック
+
+formatters:
+  enable:
+    - goimports      # importの順序・不要importのチェック
+
+formatters-settings:
+  goimports:
+    # ローカルパッケージを第三グループに分離
+    local-prefixes:
+      - sandbox-api-gin
+
+linters-settings:
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+    disabled-checks:
+      - whyNoLint
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    # テストファイルはerrcheckを緩める
+    - path: "_test\\.go"
+      linters:
+        - errcheck
