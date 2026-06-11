@@ -23,8 +23,12 @@ import (
 	"sandbox-api-gin/internal/api/middleware"
 	"sandbox-api-gin/internal/api/router"
 	"sandbox-api-gin/internal/application/usecase"
+	fxusecase "sandbox-api-gin/internal/application/usecase/fx"
 	"sandbox-api-gin/internal/config"
+	"sandbox-api-gin/internal/domain/service/fx"
+	"sandbox-api-gin/internal/infrastructure/external"
 	"sandbox-api-gin/internal/infrastructure/infradb"
+	infradbfx "sandbox-api-gin/internal/infrastructure/infradb/fx"
 	"sandbox-api-gin/internal/infrastructure/infraredis"
 	"sandbox-api-gin/internal/security"
 )
@@ -98,16 +102,48 @@ func run() error {
 	sessionRepo := infraredis.NewRedisSessionRepository(redisClient, cfg.SessionTTL)
 	userRepo := infradb.NewMySQLUserRepository(db)
 
+	// FXリポジトリ・サービス
+	symbolRepo := infradbfx.NewMySQLSymbolRepository(db)
+	countryRepo := infradbfx.NewMySQLCountryRepository(db)
+	economicIndicatorRepo := infradbfx.NewMySQLEconomicIndicatorRepository(db)
+	summerTimeRepo := infradbfx.NewMySQLSummerTimeRepository(db)
+	barDataRepo := infradbfx.NewMySQLBarDataRepository(db)
+	gaitameService := external.NewGaitameRateService(symbolRepo, cfg.FxRateURL, redisClient)
+	tradeSimulationRepo := infradbfx.NewMySQLTradeSimulationRepository(db, redisClient, gaitameService)
+	calculator := fxservice.NewFxTradeCalculator()
+
 	// ユースケース
 	loginUseCase := usecase.NewLoginUseCase(userRepo, sessionRepo)
 	logoutUseCase := usecase.NewLogoutUseCase(sessionRepo)
 	getProfileUseCase := usecase.NewGetProfileUseCase(userRepo)
 	registerUserUseCase := usecase.NewRegisterUserUseCase(userRepo)
 	updateUserUseCase := usecase.NewUpdateUserUseCase(userRepo)
+	tradeSimulationUseCase := fxusecase.NewTradeSimulationUseCase(tradeSimulationRepo, calculator)
+	getMasterUseCase := fxusecase.NewGetMasterUseCase(symbolRepo, countryRepo, economicIndicatorRepo)
+	searchSymbolUseCase := fxusecase.NewSearchSymbolUseCase(symbolRepo)
+	addSymbolUseCase := fxusecase.NewAddSymbolUseCase(symbolRepo)
+	getSymbolUseCase := fxusecase.NewGetSymbolUseCase(symbolRepo)
+	updateSymbolUseCase := fxusecase.NewUpdateSymbolUseCase(symbolRepo)
+	searchCountryUseCase := fxusecase.NewSearchCountryUseCase(countryRepo)
+	addCountryUseCase := fxusecase.NewAddCountryUseCase(countryRepo)
+	getCountryUseCase := fxusecase.NewGetCountryUseCase(countryRepo)
+	updateCountryUseCase := fxusecase.NewUpdateCountryUseCase(countryRepo)
+	searchSummerTimeUseCase := fxusecase.NewSearchSummerTimeUseCase(summerTimeRepo)
+	addSummerTimeUseCase := fxusecase.NewAddSummerTimeUseCase(summerTimeRepo)
+	getSummerTimeUseCase := fxusecase.NewGetSummerTimeUseCase(summerTimeRepo)
+	updateSummerTimeUseCase := fxusecase.NewUpdateSummerTimeUseCase(summerTimeRepo)
+	searchBarDataUseCase := fxusecase.NewSearchBarDataUseCase(barDataRepo)
+	statusBarDataUseCase := fxusecase.NewStatusBarDataUseCase(barDataRepo)
 
 	// コントローラ
 	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
 	userController := controller.NewUserController(getProfileUseCase, registerUserUseCase, updateUserUseCase)
+	tradeSimulationController := controller.NewTradeSimulationController(tradeSimulationUseCase)
+	masterListController := controller.NewMasterListController(getMasterUseCase)
+	symbolController := controller.NewSymbolController(searchSymbolUseCase, addSymbolUseCase, getSymbolUseCase, updateSymbolUseCase)
+	countryController := controller.NewCountryController(searchCountryUseCase, addCountryUseCase, getCountryUseCase, updateCountryUseCase)
+	summerTimeController := controller.NewSummerTimeController(searchSummerTimeUseCase, addSummerTimeUseCase, getSummerTimeUseCase, updateSummerTimeUseCase)
+	barDataController := controller.NewBarDataController(searchBarDataUseCase, statusBarDataUseCase)
 
 	// ミドルウェア
 	jwtMw := middleware.JwtMiddleware(jwtProvider, sessionRepo)
@@ -130,7 +166,11 @@ func run() error {
 	}
 
 	// ルーター設定
-	router.Setup(engine, jwtMw, authMw, authController, userController)
+	router.Setup(engine, jwtMw, authMw,
+		authController, userController, tradeSimulationController,
+		masterListController, symbolController,
+		countryController, summerTimeController, barDataController,
+	)
 
 	// Graceful Shutdown
 	srv := &http.Server{

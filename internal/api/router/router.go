@@ -12,7 +12,24 @@ func Setup(
 	authMiddleware gin.HandlerFunc,
 	authController *controller.AuthController,
 	userController *controller.UserController,
+	tradeSimulationController *controller.TradeSimulationController,
+	masterListController *controller.MasterListController,
+	symbolController *controller.SymbolController,
+	countryController *controller.CountryController,
+	summerTimeController *controller.SummerTimeController,
+	barDataController *controller.BarDataController,
 ) {
+	// 認証不要エンドポイント（@PublicApi相当）
+	v1Public := engine.Group("/v1/fx/master-list")
+	{
+		v1Public.GET("/symbol/:symbolType", masterListController.Symbol)
+		v1Public.GET("/country", masterListController.Country)
+		v1Public.GET("/currency-pair", masterListController.CurrencyPair)
+		v1Public.GET("/currency-index", masterListController.CurrencyIndex)
+		v1Public.GET("/economic-indicator/:countryCode", masterListController.EconomicIndicator)
+	}
+
+	// 認証必須エンドポイント（JWT + Auth middleware）
 	v1 := engine.Group("/v1")
 	v1.Use(jwtMiddleware)
 	v1.Use(authMiddleware)
@@ -27,6 +44,42 @@ func Setup(
 			user.GET("", userController.Profile)
 			user.POST("", userController.Registration)
 			user.PUT("/:userId", userController.Update)
+		}
+		fx := v1.Group("/fx")
+		{
+			fx.POST("/trade/simulation", tradeSimulationController.Simulation)
+
+			symbol := fx.Group("/symbol")
+			{
+				symbol.GET("/currency-pair-list", symbolController.CurrencyPairList)
+				symbol.GET("/currency-index-list", symbolController.CurrencyIndexList)
+				symbol.POST("/search", symbolController.Search)
+				symbol.POST("", symbolController.Add)
+				symbol.GET("/:symbol", symbolController.Get)
+				symbol.PUT("/:symbol", symbolController.Update)
+			}
+
+			country := fx.Group("/country")
+			{
+				country.POST("/search", countryController.Search)
+				country.POST("", countryController.Add)
+				country.GET("/:code", countryController.Get)
+				country.PUT("/:code", countryController.Update)
+			}
+
+			summerTime := fx.Group("/summer-time")
+			{
+				summerTime.POST("/search", summerTimeController.Search)
+				summerTime.POST("", summerTimeController.Add)
+				summerTime.GET("/:targetYear", summerTimeController.Get)
+				summerTime.PUT("/:targetYear", summerTimeController.Update)
+			}
+
+			barData := fx.Group("/bar-data")
+			{
+				barData.POST("", barDataController.Search)
+				barData.GET("/:symbolType/:barType", barDataController.Status)
+			}
 		}
 	}
 }

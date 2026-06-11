@@ -79,6 +79,7 @@ docker compose --env-file .env.compose up -d
 | SESSION_TTL | 3600 | セッションTTL（秒）デフォルト3600 |
 | SERVER_PORT | 8080 | サーバーポート デフォルト8080 |
 | GIN_MODE | debug | Ginモード（debug / release / test） |
+| FX_RATE_URL | https://api.gaitame.com | GaitameレートAPIのベースURL（未設定時はGaitameフォールバック無効） |
 
 ### 環境設定ファイル
 
@@ -305,6 +306,39 @@ if err := c.ShouldBindJSON(&req); err != nil {
 `decodeBase64UserID()` でデコードし、`authUser.Sub` と一致しなければ `ForbiddenError`。
 
 Javaの `UserId.decodeUserIdValue()` に相当。`StdEncoding` → `RawStdEncoding` フォールバックは Base64 デコードと同じパターン。
+
+### 認証不要エンドポイント（`@PublicApi` 相当）
+
+JavaのSpring Securityで `@PublicApi` を付けたエンドポイントは、`router.go` で JWT・Auth ミドルウェアを通さない別グループに追加する。
+
+```go
+// 認証不要グループ（@PublicApi相当）
+v1Public := engine.Group("/v1/fx/master-list")
+v1Public.GET("/country", masterListController.Country)
+
+// 認証必須グループ（JWT + Auth middleware）
+v1 := engine.Group("/v1")
+v1.Use(jwtMiddleware)
+v1.Use(authMiddleware)
+```
+
+レスポンスは `ApiResponse` ラッパーなしで直接返す（Javaの `ResponseEntity<T>` に対応）。
+
+```go
+c.JSON(http.StatusOK, list) // []model.KeyValue をそのまま返す
+```
+
+### MySQL予約語カラム別名のバッククォートエスケープ
+
+`key` / `value` 等のMySQL予約語をカラム別名に使う場合、Goのバッククォート文字列内にバッククォートを書けないため文字列連結で記述する。
+
+```go
+// NG: バッククォート文字列内にバッククォートを直接書けない
+query := `SELECT code AS `key`, name AS `value` FROM ...`
+
+// OK: 文字列連結でエスケープ
+query := `SELECT code AS ` + "`key`" + `, name AS ` + "`value`" + ` FROM ...`
+```
 
 ### パッケージ命名規約
 Goのパッケージ名は短い識別子。ディレクトリ名と一致させる。

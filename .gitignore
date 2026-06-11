@@ -35,5 +35,11 @@ go.work.sum
 .vscode/
 .DS_Store
 
-# custom
-docs/base_src
+# docs: yaml/md のみ管理対象、それ以外は除外
+docs/*
+!docs/*.yaml
+!docs/*.md
+
+# local: 
+local/*
+!local/work/backup_sandbox.sh

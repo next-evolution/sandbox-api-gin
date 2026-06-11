@@ -23,6 +23,8 @@ type Config struct {
 
 	ServerPort string
 	GINMode    string // "debug" / "release" / "test"
+
+	FxRateURL string
 }
 
 func Load() *Config {
@@ -47,6 +49,7 @@ func Load() *Config {
 		SessionTTL:   sessionTTL,
 		ServerPort:   getEnv("SERVER_PORT", "8080"),
 		GINMode:      getEnv("GIN_MODE", "debug"),
+		FxRateURL:    getEnv("FX_RATE_URL", ""),
 	}
 }
 
