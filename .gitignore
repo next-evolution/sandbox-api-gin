@@ -28,6 +28,7 @@ go.work.sum
 .env
 .env.local
 .env.docker
+.env.compose
 
 # Editor/IDE
 .idea/
