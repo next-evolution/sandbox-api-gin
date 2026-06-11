@@ -57,6 +57,9 @@ make lint
 go mod tidy
 # または
 make tidy
+
+# docker compose .env.compose を編集して実際の値を設定
+docker compose --env-file .env.compose up -d
 ```
 
 ### 必要な環境変数
