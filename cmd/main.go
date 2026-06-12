@@ -23,8 +23,18 @@ import (
 	"sandbox-api-gin/internal/api/middleware"
 	"sandbox-api-gin/internal/api/router"
 	"sandbox-api-gin/internal/application/usecase"
+	fxusecase "sandbox-api-gin/internal/application/usecase/fx"
+	"sandbox-api-gin/internal/application/usecase/fx/bardata"
+	"sandbox-api-gin/internal/application/usecase/fx/country"
+	"sandbox-api-gin/internal/application/usecase/fx/economicindicator"
+	"sandbox-api-gin/internal/application/usecase/fx/economicindicatordata"
+	"sandbox-api-gin/internal/application/usecase/fx/summertime"
+	"sandbox-api-gin/internal/application/usecase/fx/symbol"
 	"sandbox-api-gin/internal/config"
+	fxservice "sandbox-api-gin/internal/domain/service/fx"
+	"sandbox-api-gin/internal/infrastructure/external"
 	"sandbox-api-gin/internal/infrastructure/infradb"
+	infradbfx "sandbox-api-gin/internal/infrastructure/infradb/fx"
 	"sandbox-api-gin/internal/infrastructure/infraredis"
 	"sandbox-api-gin/internal/security"
 )
@@ -98,16 +108,70 @@ func run() error {
 	sessionRepo := infraredis.NewRedisSessionRepository(redisClient, cfg.SessionTTL)
 	userRepo := infradb.NewMySQLUserRepository(db)
 
+	// FXリポジトリ・サービス
+	symbolRepo := infradbfx.NewMySQLSymbolRepository(db)
+	countryRepo := infradbfx.NewMySQLCountryRepository(db)
+	economicIndicatorRepo := infradbfx.NewMySQLEconomicIndicatorRepository(db)
+	economicIndicatorDataRepo := infradbfx.NewMySQLEconomicIndicatorDataRepository(db)
+	summerTimeRepo := infradbfx.NewMySQLSummerTimeRepository(db)
+	barDataRepo := infradbfx.NewMySQLBarDataRepository(db)
+	gaitameService := external.NewGaitameRateService(symbolRepo, cfg.FxRateURL, redisClient)
+	tradeSimulationRepo := infradbfx.NewMySQLTradeSimulationRepository(db, redisClient, gaitameService)
+	calculator := fxservice.NewFxTradeCalculator()
+
 	// ユースケース
 	loginUseCase := usecase.NewLoginUseCase(userRepo, sessionRepo)
 	logoutUseCase := usecase.NewLogoutUseCase(sessionRepo)
 	getProfileUseCase := usecase.NewGetProfileUseCase(userRepo)
 	registerUserUseCase := usecase.NewRegisterUserUseCase(userRepo)
 	updateUserUseCase := usecase.NewUpdateUserUseCase(userRepo)
+	tradeSimulationUseCase := fxusecase.NewTradeSimulationUseCase(tradeSimulationRepo, calculator)
+	getMasterUseCase := fxusecase.NewGetMasterUseCase(symbolRepo, countryRepo, economicIndicatorRepo)
+	searchSymbolUseCase := symbol.NewSearchSymbolUseCase(symbolRepo)
+	addSymbolUseCase := symbol.NewAddSymbolUseCase(symbolRepo)
+	getSymbolUseCase := symbol.NewGetSymbolUseCase(symbolRepo)
+	updateSymbolUseCase := symbol.NewUpdateSymbolUseCase(symbolRepo)
+	searchCountryUseCase := country.NewSearchCountryUseCase(countryRepo)
+	addCountryUseCase := country.NewAddCountryUseCase(countryRepo)
+	getCountryUseCase := country.NewGetCountryUseCase(countryRepo)
+	updateCountryUseCase := country.NewUpdateCountryUseCase(countryRepo)
+	searchSummerTimeUseCase := summertime.NewSearchSummerTimeUseCase(summerTimeRepo)
+	addSummerTimeUseCase := summertime.NewAddSummerTimeUseCase(summerTimeRepo)
+	getSummerTimeUseCase := summertime.NewGetSummerTimeUseCase(summerTimeRepo)
+	updateSummerTimeUseCase := summertime.NewUpdateSummerTimeUseCase(summerTimeRepo)
+	searchBarDataUseCase := bardata.NewSearchBarDataUseCase(barDataRepo)
+	statusBarDataUseCase := bardata.NewStatusBarDataUseCase(barDataRepo)
+	searchEconomicIndicatorUseCase := economicindicator.NewSearchEconomicIndicatorUseCase(economicIndicatorRepo)
+	getEconomicIndicatorUseCase := economicindicator.NewGetEconomicIndicatorUseCase(economicIndicatorRepo)
+	addEconomicIndicatorUseCase := economicindicator.NewAddEconomicIndicatorUseCase(economicIndicatorRepo)
+	updateEconomicIndicatorUseCase := economicindicator.NewUpdateEconomicIndicatorUseCase(economicIndicatorRepo)
+	searchEconomicIndicatorDataUseCase := economicindicatordata.NewSearchEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	getEconomicIndicatorDataUseCase := economicindicatordata.NewGetEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	addEconomicIndicatorDataUseCase := economicindicatordata.NewAddEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	updateEconomicIndicatorDataUseCase := economicindicatordata.NewUpdateEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	importEconomicIndicatorDataUseCase := economicindicatordata.NewImportEconomicIndicatorDataUseCase(
+		economicIndicatorDataRepo, economicIndicatorRepo, countryRepo,
+		cfg.StorageBucket, cfg.StorageFX, cfg.IndicatorExcludeList,
+	)
 
 	// コントローラ
 	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
 	userController := controller.NewUserController(getProfileUseCase, registerUserUseCase, updateUserUseCase)
+	tradeSimulationController := controller.NewTradeSimulationController(tradeSimulationUseCase)
+	masterListController := controller.NewMasterListController(getMasterUseCase)
+	symbolController := controller.NewSymbolController(searchSymbolUseCase, addSymbolUseCase, getSymbolUseCase, updateSymbolUseCase)
+	countryController := controller.NewCountryController(searchCountryUseCase, addCountryUseCase, getCountryUseCase, updateCountryUseCase)
+	summerTimeController := controller.NewSummerTimeController(searchSummerTimeUseCase, addSummerTimeUseCase, getSummerTimeUseCase, updateSummerTimeUseCase)
+	barDataController := controller.NewBarDataController(searchBarDataUseCase, statusBarDataUseCase)
+	economicIndicatorController := controller.NewEconomicIndicatorController(
+		searchEconomicIndicatorUseCase, getEconomicIndicatorUseCase,
+		addEconomicIndicatorUseCase, updateEconomicIndicatorUseCase,
+	)
+	economicIndicatorDataController := controller.NewEconomicIndicatorDataController(
+		searchEconomicIndicatorDataUseCase, getEconomicIndicatorDataUseCase,
+		addEconomicIndicatorDataUseCase, updateEconomicIndicatorDataUseCase,
+		importEconomicIndicatorDataUseCase,
+	)
 
 	// ミドルウェア
 	jwtMw := middleware.JwtMiddleware(jwtProvider, sessionRepo)
@@ -130,7 +194,12 @@ func run() error {
 	}
 
 	// ルーター設定
-	router.Setup(engine, jwtMw, authMw, authController, userController)
+	router.Setup(engine, jwtMw, authMw,
+		authController, userController, tradeSimulationController,
+		masterListController, symbolController,
+		countryController, summerTimeController, barDataController,
+		economicIndicatorController, economicIndicatorDataController,
+	)
 
 	// Graceful Shutdown
 	srv := &http.Server{

@@ -40,6 +40,6 @@ docs/*
 !docs/*.yaml
 !docs/*.md
 
-# local
-local/work
-!local/work/sandbox_backup.sh
+# local: 
+local/*
+!local/work/backup_sandbox.sh

@@ -9,23 +9,65 @@ internal/
   config/                          # 環境変数読み込み
   domain/
     apperror/                      # カスタムエラー型
-    model/                         # ドメインモデル（AuthUser, User）
+    model/                         # ドメインモデル（AuthUser, User, KeyValue）
+      fx/                          # FXドメインモデル（TradeEntry, TradePosition, PriceInfo 他）
     repository/                    # リポジトリインターフェース
+      fx/                          # FXリポジトリIF（TradeSimulation, Symbol, Country, EconomicIndicator）
+    service/
+      fx/                          # FXドメインサービス（FxTradeCalculator）
   application/
     command/                       # コマンドオブジェクト（入力値の集約）
+      fx/                          # FXコマンド（TradeSimulationCommand）
     dto/                           # データ転送オブジェクト（UserDto）
+      fx/                          # FX DTO（SymbolDto）
     usecase/                       # ユースケース（ビジネスロジック）
+      fx/                          # FXユースケース（TradeSimulationUseCase, GetMasterUseCase）フラット
+        country/                   # 国マスタ CRUD UseCase
+        symbol/                    # シンボルマスタ CRUD UseCase
+        summertime/                # サマータイム CRUD UseCase
+        bardata/                   # バーデータ検索・ステータス UseCase
+        economicindicator/         # 経済指標 CRUD UseCase
+        economicindicatordata/     # 経済指標データ CRUD + インポート UseCase
   infrastructure/
     infraredis/                    # Redisセッション実装
-    infradb/                       # MySQL実装
+    infradb/                       # MySQL実装（User）
+      fx/                          # FX MySQL実装（TradeSimulation, Symbol, Country, EconomicIndicator）
+    external/                      # 外部サービス（GaitameRateService）
   security/
     jwt_provider.go                # JWT検証（JWKS自動取得・RS256）
   api/
     middleware/                    # jwt_middleware.go / auth_middleware.go
-    controller/                    # HTTPハンドラ
-    dto/request/ & response/       # リクエスト/レスポンスDTO
+    controller/                    # HTTPハンドラ（auth_controller.go, user_controller.go, fx_*.go）
+    dto/
+      request/                     # リクエストDTO
+        fx/                        # FXリクエストDTO（TradeSimulationRequest, SymbolRequest）
+      response/                    # レスポンスDTO（ErrorResponse, ApiResponse など共通型）
+        fx/                        # FXレスポンスDTO（BarDataSearchResponse, TradeSimulationResponse 他）
     router/                        # ルーティング設定
 ```
+
+### パッケージ命名規約（FX機能）
+
+ドメイン境界ごとにサブパッケージを切り、競合を避けるためにプレフィックスを付ける。
+
+| ディレクトリ | パッケージ名 |
+|---|---|
+| `internal/domain/model/fx/` | `fx` |
+| `internal/domain/repository/fx/` | `fxrepository` |
+| `internal/domain/service/fx/` | `fxservice` |
+| `internal/application/command/fx/` | `fxcommand` |
+| `internal/application/usecase/fx/` | `fxusecase`（TradeSimulationUseCase, GetMasterUseCase のみ） |
+| `internal/application/usecase/fx/country/` | `country` |
+| `internal/application/usecase/fx/symbol/` | `symbol` |
+| `internal/application/usecase/fx/summertime/` | `summertime` |
+| `internal/application/usecase/fx/bardata/` | `bardata` |
+| `internal/application/usecase/fx/economicindicator/` | `economicindicator` |
+| `internal/application/usecase/fx/economicindicatordata/` | `economicindicatordata` |
+| `internal/infrastructure/infradb/fx/` | `infradbfx` |
+| `internal/infrastructure/external/` | `external` |
+| `internal/application/dto/fx/` | `fxdto` |
+| `internal/api/dto/request/fx/` | `fxrequest` |
+| `internal/api/dto/response/fx/` | `fxresponse` |
 
 ## 使用ライブラリ
 
