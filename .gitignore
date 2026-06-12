@@ -35,7 +35,7 @@ go.work.sum
 .vscode/
 .DS_Store
 
-# docs: yaml/md のみ管理対象、それ以外は除外
+# docs: yaml/md とスクリーンショットのみ管理対象、それ以外は除外
 docs/*
 !docs/*.yaml
 !docs/*.md
