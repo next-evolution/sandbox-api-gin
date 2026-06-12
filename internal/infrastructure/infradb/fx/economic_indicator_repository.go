@@ -90,7 +90,7 @@ func (r *MySQLEconomicIndicatorRepository) Search(ctx context.Context, page, siz
 			t.country_code    AS countryCode,
 			t.name            AS name,
 			t.importance      AS importance,
-			t.description     AS description,
+			COALESCE(t.description, '') AS description,
 			t.unit_of_value   AS unitOfValue,
 			c.name            AS countryName,
 			c.name_short      AS countryNameShort
@@ -131,7 +131,7 @@ func (r *MySQLEconomicIndicatorRepository) Get(ctx context.Context, id int64) (*
 			t.country_code    AS countryCode,
 			t.name            AS name,
 			t.importance      AS importance,
-			t.description     AS description,
+			COALESCE(t.description, '') AS description,
 			t.unit_of_value   AS unitOfValue,
 			(t.deleted+0)     AS deleted,
 			t.created_at      AS createdAt,
@@ -222,7 +222,7 @@ func (r *MySQLEconomicIndicatorRepository) GetEconomicIndicatorList(ctx context.
 			t.country_code  AS countryCode,
 			t.name          AS name,
 			t.importance    AS importance,
-			t.description   AS description,
+			COALESCE(t.description, '') AS description,
 			t.unit_of_value AS unitOfValue,
 			c.name          AS countryName,
 			c.name_short    AS countryNameShort
