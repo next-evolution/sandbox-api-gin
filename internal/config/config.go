@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -25,6 +26,10 @@ type Config struct {
 	GINMode    string // "debug" / "release" / "test"
 
 	FxRateURL string
+
+	StorageBucket        string
+	StorageFX            string
+	IndicatorExcludeList []string
 }
 
 func Load() *Config {
@@ -36,20 +41,23 @@ func Load() *Config {
 	}
 
 	return &Config{
-		DBHost:       getEnv("DB_HOST", "localhost"),
-		DBPort:       getEnv("DB_PORT", "43306"),
-		DBSchema:     getEnv("DB_SCHEMA", "sandbox_local"),
-		DBUser:       getEnv("DB_USER", "sandbox_app"),
-		DBPassword:   getEnv("DB_PASSWORD", "s4ndb0x_app"),
-		RedisHost:    getEnv("REDIS_HOST", "localhost"),
-		RedisPort:    getEnv("REDIS_PORT", "46379"),
-		JWTIssuers:   collectEnvs("JWT_ISSUER1", "JWT_ISSUER2"),
-		JWTAudiences: collectEnvs("JWT_AUDIENCE1", "JWT_AUDIENCE2", "JWT_AUDIENCE3"),
-		JWTOrigins:   collectEnvs("JWT_ORIGIN1", "JWT_ORIGIN2"),
-		SessionTTL:   sessionTTL,
-		ServerPort:   getEnv("SERVER_PORT", "8080"),
-		GINMode:      getEnv("GIN_MODE", "debug"),
-		FxRateURL:    getEnv("FX_RATE_URL", ""),
+		DBHost:               getEnv("DB_HOST", "localhost"),
+		DBPort:               getEnv("DB_PORT", "43306"),
+		DBSchema:             getEnv("DB_SCHEMA", "sandbox_local"),
+		DBUser:               getEnv("DB_USER", "sandbox_app"),
+		DBPassword:           getEnv("DB_PASSWORD", "s4ndb0x_app"),
+		RedisHost:            getEnv("REDIS_HOST", "localhost"),
+		RedisPort:            getEnv("REDIS_PORT", "46379"),
+		JWTIssuers:           collectEnvs("JWT_ISSUER1", "JWT_ISSUER2"),
+		JWTAudiences:         collectEnvs("JWT_AUDIENCE1", "JWT_AUDIENCE2", "JWT_AUDIENCE3"),
+		JWTOrigins:           collectEnvs("JWT_ORIGIN1", "JWT_ORIGIN2"),
+		SessionTTL:           sessionTTL,
+		ServerPort:           getEnv("SERVER_PORT", "8080"),
+		GINMode:              getEnv("GIN_MODE", "debug"),
+		FxRateURL:            getEnv("FX_RATE_URL", ""),
+		StorageBucket:        getEnv("STORAGE_BUCKET", "/tmp/sandbox"),
+		StorageFX:            getEnv("STORAGE_FX", "fx"),
+		IndicatorExcludeList: splitEnv("INDICATOR_EXCLUDE_LIST"),
 	}
 }
 
@@ -58,6 +66,21 @@ func getEnv(key, defaultValue string) string {
 		return v
 	}
 	return defaultValue
+}
+
+func splitEnv(key string) []string {
+	v := os.Getenv(key)
+	if v == "" {
+		return nil
+	}
+	parts := strings.Split(v, ",")
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if s := strings.TrimSpace(p); s != "" {
+			result = append(result, s)
+		}
+	}
+	return result
 }
 
 func collectEnvs(keys ...string) []string {

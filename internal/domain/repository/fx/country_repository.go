@@ -17,4 +17,5 @@ type CountryRepository interface {
 	Update(ctx context.Context, country fxmodel.Country) error
 	UpdateCode(ctx context.Context, country fxmodel.Country, baseCode string) error
 	RefreshCache(ctx context.Context) error
+	CountryAll(ctx context.Context) ([]fxmodel.Country, error)
 }

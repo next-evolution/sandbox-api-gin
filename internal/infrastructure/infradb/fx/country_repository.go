@@ -201,6 +201,34 @@ func (r *MySQLCountryRepository) RefreshCache(_ context.Context) error {
 	return nil
 }
 
+func (r *MySQLCountryRepository) CountryAll(ctx context.Context) ([]fxmodel.Country, error) {
+	query := `
+		SELECT
+			code          AS code,
+			name          AS name,
+			currency_code AS currencyCode,
+			name_en       AS nameEn,
+			name_short    AS nameShort,
+			sort_order    AS sortOrder,
+			(deleted+0)   AS deleted,
+			created_at    AS createdAt,
+			created_by    AS createdBy,
+			updated_at    AS updatedAt,
+			updated_by    AS updatedBy
+		FROM fx_country
+		WHERE (deleted+0) = 0
+		ORDER BY sort_order`
+	var recs []fxCountryRecord
+	if err := r.db.SelectContext(ctx, &recs, query); err != nil {
+		return nil, err
+	}
+	result := make([]fxmodel.Country, len(recs))
+	for i, rec := range recs {
+		result[i] = toCountryDomain(rec)
+	}
+	return result, nil
+}
+
 func toCountryDomain(rec fxCountryRecord) fxmodel.Country {
 	return fxmodel.Country{
 		Code:         rec.Code,

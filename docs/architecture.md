@@ -21,7 +21,13 @@ internal/
     dto/                           # データ転送オブジェクト（UserDto）
       fx/                          # FX DTO（SymbolDto）
     usecase/                       # ユースケース（ビジネスロジック）
-      fx/                          # FXユースケース（TradeSimulationUseCase, GetMasterUseCase, SearchSymbolUseCase 他）
+      fx/                          # FXユースケース（TradeSimulationUseCase, GetMasterUseCase）フラット
+        country/                   # 国マスタ CRUD UseCase
+        symbol/                    # シンボルマスタ CRUD UseCase
+        summertime/                # サマータイム CRUD UseCase
+        bardata/                   # バーデータ検索・ステータス UseCase
+        economicindicator/         # 経済指標 CRUD UseCase
+        economicindicatordata/     # 経済指標データ CRUD + インポート UseCase
   infrastructure/
     infraredis/                    # Redisセッション実装
     infradb/                       # MySQL実装（User）
@@ -31,11 +37,12 @@ internal/
     jwt_provider.go                # JWT検証（JWKS自動取得・RS256）
   api/
     middleware/                    # jwt_middleware.go / auth_middleware.go
-    controller/                    # HTTPハンドラ（auth, user, trade_simulation, master_list, symbol）
+    controller/                    # HTTPハンドラ（auth_controller.go, user_controller.go, fx_*.go）
     dto/
       request/                     # リクエストDTO
         fx/                        # FXリクエストDTO（TradeSimulationRequest, SymbolRequest）
-      response/                    # レスポンスDTO
+      response/                    # レスポンスDTO（ErrorResponse, ApiResponse など共通型）
+        fx/                        # FXレスポンスDTO（BarDataSearchResponse, TradeSimulationResponse 他）
     router/                        # ルーティング設定
 ```
 
@@ -49,11 +56,18 @@ internal/
 | `internal/domain/repository/fx/` | `fxrepository` |
 | `internal/domain/service/fx/` | `fxservice` |
 | `internal/application/command/fx/` | `fxcommand` |
-| `internal/application/usecase/fx/` | `fxusecase` |
+| `internal/application/usecase/fx/` | `fxusecase`（TradeSimulationUseCase, GetMasterUseCase のみ） |
+| `internal/application/usecase/fx/country/` | `country` |
+| `internal/application/usecase/fx/symbol/` | `symbol` |
+| `internal/application/usecase/fx/summertime/` | `summertime` |
+| `internal/application/usecase/fx/bardata/` | `bardata` |
+| `internal/application/usecase/fx/economicindicator/` | `economicindicator` |
+| `internal/application/usecase/fx/economicindicatordata/` | `economicindicatordata` |
 | `internal/infrastructure/infradb/fx/` | `infradbfx` |
 | `internal/infrastructure/external/` | `external` |
 | `internal/application/dto/fx/` | `fxdto` |
 | `internal/api/dto/request/fx/` | `fxrequest` |
+| `internal/api/dto/response/fx/` | `fxresponse` |
 
 ## 使用ライブラリ
 

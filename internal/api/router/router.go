@@ -18,6 +18,8 @@ func Setup(
 	countryController *controller.CountryController,
 	summerTimeController *controller.SummerTimeController,
 	barDataController *controller.BarDataController,
+	economicIndicatorController *controller.EconomicIndicatorController,
+	economicIndicatorDataController *controller.EconomicIndicatorDataController,
 ) {
 	api := engine.Group("/api")
 
@@ -81,6 +83,23 @@ func Setup(
 			{
 				barData.POST("", barDataController.Search)
 				barData.GET("/:symbolType/:barType", barDataController.Status)
+			}
+
+			economicIndicator := fx.Group("/economic-indicator")
+			{
+				economicIndicator.POST("/search", economicIndicatorController.Search)
+				economicIndicator.POST("", economicIndicatorController.Add)
+				economicIndicator.GET("/:countryCode/:id", economicIndicatorController.Get)
+				economicIndicator.PUT("/:countryCode/:id", economicIndicatorController.Update)
+			}
+
+			economicIndicatorData := fx.Group("/economic-indicator-data")
+			{
+				economicIndicatorData.POST("/search", economicIndicatorDataController.Search)
+				economicIndicatorData.POST("", economicIndicatorDataController.Add)
+				economicIndicatorData.GET("/:economicIndicatorId/:publication", economicIndicatorDataController.Get)
+				economicIndicatorData.PUT("/:economicIndicatorId/:publication", economicIndicatorDataController.Update)
+				economicIndicatorData.POST("/import-text", economicIndicatorDataController.ImportText)
 			}
 		}
 	}

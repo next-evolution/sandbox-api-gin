@@ -24,6 +24,12 @@ import (
 	"sandbox-api-gin/internal/api/router"
 	"sandbox-api-gin/internal/application/usecase"
 	fxusecase "sandbox-api-gin/internal/application/usecase/fx"
+	"sandbox-api-gin/internal/application/usecase/fx/bardata"
+	"sandbox-api-gin/internal/application/usecase/fx/country"
+	"sandbox-api-gin/internal/application/usecase/fx/economicindicator"
+	"sandbox-api-gin/internal/application/usecase/fx/economicindicatordata"
+	"sandbox-api-gin/internal/application/usecase/fx/summertime"
+	"sandbox-api-gin/internal/application/usecase/fx/symbol"
 	"sandbox-api-gin/internal/config"
 	fxservice "sandbox-api-gin/internal/domain/service/fx"
 	"sandbox-api-gin/internal/infrastructure/external"
@@ -106,6 +112,7 @@ func run() error {
 	symbolRepo := infradbfx.NewMySQLSymbolRepository(db)
 	countryRepo := infradbfx.NewMySQLCountryRepository(db)
 	economicIndicatorRepo := infradbfx.NewMySQLEconomicIndicatorRepository(db)
+	economicIndicatorDataRepo := infradbfx.NewMySQLEconomicIndicatorDataRepository(db)
 	summerTimeRepo := infradbfx.NewMySQLSummerTimeRepository(db)
 	barDataRepo := infradbfx.NewMySQLBarDataRepository(db)
 	gaitameService := external.NewGaitameRateService(symbolRepo, cfg.FxRateURL, redisClient)
@@ -120,20 +127,32 @@ func run() error {
 	updateUserUseCase := usecase.NewUpdateUserUseCase(userRepo)
 	tradeSimulationUseCase := fxusecase.NewTradeSimulationUseCase(tradeSimulationRepo, calculator)
 	getMasterUseCase := fxusecase.NewGetMasterUseCase(symbolRepo, countryRepo, economicIndicatorRepo)
-	searchSymbolUseCase := fxusecase.NewSearchSymbolUseCase(symbolRepo)
-	addSymbolUseCase := fxusecase.NewAddSymbolUseCase(symbolRepo)
-	getSymbolUseCase := fxusecase.NewGetSymbolUseCase(symbolRepo)
-	updateSymbolUseCase := fxusecase.NewUpdateSymbolUseCase(symbolRepo)
-	searchCountryUseCase := fxusecase.NewSearchCountryUseCase(countryRepo)
-	addCountryUseCase := fxusecase.NewAddCountryUseCase(countryRepo)
-	getCountryUseCase := fxusecase.NewGetCountryUseCase(countryRepo)
-	updateCountryUseCase := fxusecase.NewUpdateCountryUseCase(countryRepo)
-	searchSummerTimeUseCase := fxusecase.NewSearchSummerTimeUseCase(summerTimeRepo)
-	addSummerTimeUseCase := fxusecase.NewAddSummerTimeUseCase(summerTimeRepo)
-	getSummerTimeUseCase := fxusecase.NewGetSummerTimeUseCase(summerTimeRepo)
-	updateSummerTimeUseCase := fxusecase.NewUpdateSummerTimeUseCase(summerTimeRepo)
-	searchBarDataUseCase := fxusecase.NewSearchBarDataUseCase(barDataRepo)
-	statusBarDataUseCase := fxusecase.NewStatusBarDataUseCase(barDataRepo)
+	searchSymbolUseCase := symbol.NewSearchSymbolUseCase(symbolRepo)
+	addSymbolUseCase := symbol.NewAddSymbolUseCase(symbolRepo)
+	getSymbolUseCase := symbol.NewGetSymbolUseCase(symbolRepo)
+	updateSymbolUseCase := symbol.NewUpdateSymbolUseCase(symbolRepo)
+	searchCountryUseCase := country.NewSearchCountryUseCase(countryRepo)
+	addCountryUseCase := country.NewAddCountryUseCase(countryRepo)
+	getCountryUseCase := country.NewGetCountryUseCase(countryRepo)
+	updateCountryUseCase := country.NewUpdateCountryUseCase(countryRepo)
+	searchSummerTimeUseCase := summertime.NewSearchSummerTimeUseCase(summerTimeRepo)
+	addSummerTimeUseCase := summertime.NewAddSummerTimeUseCase(summerTimeRepo)
+	getSummerTimeUseCase := summertime.NewGetSummerTimeUseCase(summerTimeRepo)
+	updateSummerTimeUseCase := summertime.NewUpdateSummerTimeUseCase(summerTimeRepo)
+	searchBarDataUseCase := bardata.NewSearchBarDataUseCase(barDataRepo)
+	statusBarDataUseCase := bardata.NewStatusBarDataUseCase(barDataRepo)
+	searchEconomicIndicatorUseCase := economicindicator.NewSearchEconomicIndicatorUseCase(economicIndicatorRepo)
+	getEconomicIndicatorUseCase := economicindicator.NewGetEconomicIndicatorUseCase(economicIndicatorRepo)
+	addEconomicIndicatorUseCase := economicindicator.NewAddEconomicIndicatorUseCase(economicIndicatorRepo)
+	updateEconomicIndicatorUseCase := economicindicator.NewUpdateEconomicIndicatorUseCase(economicIndicatorRepo)
+	searchEconomicIndicatorDataUseCase := economicindicatordata.NewSearchEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	getEconomicIndicatorDataUseCase := economicindicatordata.NewGetEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	addEconomicIndicatorDataUseCase := economicindicatordata.NewAddEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	updateEconomicIndicatorDataUseCase := economicindicatordata.NewUpdateEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
+	importEconomicIndicatorDataUseCase := economicindicatordata.NewImportEconomicIndicatorDataUseCase(
+		economicIndicatorDataRepo, economicIndicatorRepo, countryRepo,
+		cfg.StorageBucket, cfg.StorageFX, cfg.IndicatorExcludeList,
+	)
 
 	// コントローラ
 	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
@@ -144,6 +163,15 @@ func run() error {
 	countryController := controller.NewCountryController(searchCountryUseCase, addCountryUseCase, getCountryUseCase, updateCountryUseCase)
 	summerTimeController := controller.NewSummerTimeController(searchSummerTimeUseCase, addSummerTimeUseCase, getSummerTimeUseCase, updateSummerTimeUseCase)
 	barDataController := controller.NewBarDataController(searchBarDataUseCase, statusBarDataUseCase)
+	economicIndicatorController := controller.NewEconomicIndicatorController(
+		searchEconomicIndicatorUseCase, getEconomicIndicatorUseCase,
+		addEconomicIndicatorUseCase, updateEconomicIndicatorUseCase,
+	)
+	economicIndicatorDataController := controller.NewEconomicIndicatorDataController(
+		searchEconomicIndicatorDataUseCase, getEconomicIndicatorDataUseCase,
+		addEconomicIndicatorDataUseCase, updateEconomicIndicatorDataUseCase,
+		importEconomicIndicatorDataUseCase,
+	)
 
 	// ミドルウェア
 	jwtMw := middleware.JwtMiddleware(jwtProvider, sessionRepo)
@@ -170,6 +198,7 @@ func run() error {
 		authController, userController, tradeSimulationController,
 		masterListController, symbolController,
 		countryController, summerTimeController, barDataController,
+		economicIndicatorController, economicIndicatorDataController,
 	)
 
 	// Graceful Shutdown
