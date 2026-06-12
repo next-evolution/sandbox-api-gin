@@ -25,7 +25,7 @@ import (
 	"sandbox-api-gin/internal/application/usecase"
 	fxusecase "sandbox-api-gin/internal/application/usecase/fx"
 	"sandbox-api-gin/internal/config"
-	"sandbox-api-gin/internal/domain/service/fx"
+	fxservice "sandbox-api-gin/internal/domain/service/fx"
 	"sandbox-api-gin/internal/infrastructure/external"
 	"sandbox-api-gin/internal/infrastructure/infradb"
 	infradbfx "sandbox-api-gin/internal/infrastructure/infradb/fx"

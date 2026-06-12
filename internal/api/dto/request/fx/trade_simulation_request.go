@@ -7,31 +7,31 @@ import (
 )
 
 type TradeSimulationRequest struct {
-	RiskAmount    float64        `json:"riskAmount"`
-	FirstLotRatio float64        `json:"firstLotRatio" binding:"gt=0"`
-	Entry         EntryParam     `json:"entry" binding:"required"`
+	RiskAmount    float64         `json:"riskAmount"`
+	FirstLotRatio float64         `json:"firstLotRatio" binding:"gt=0"`
+	Entry         EntryParam      `json:"entry" binding:"required"`
 	PositionList  []PositionParam `json:"positionList" binding:"required,min=1"`
 }
 
 type EntryParam struct {
-	ID            *int64     `json:"id"`
-	TradeVersion  string     `json:"tradeVersion" binding:"required"`
-	EntryType     fx.EntryType `json:"entryType"`
-	Symbol        string     `json:"symbol" binding:"required"`
-	TradeType     fx.TradeType `json:"tradeType"`
-	ContractAt    time.Time  `json:"contractAt"`
-	FibonacciType string     `json:"fibonacciType" binding:"required"`
-	FibonacciBar  string     `json:"fibonacciBar" binding:"required"`
-	ContractPrice float64    `json:"contractPrice"`
-	LossPrice     float64    `json:"lossPrice"`
-	PositionRatio int        `json:"positionRatio"`
-	PriceJpy      float64    `json:"priceJpy"`
-	Lot           *float64   `json:"lot"`
-	SettlementAmount int     `json:"settlementAmount"`
-	LossPips      int        `json:"lossPips"`
-	SettlementRatio *float64 `json:"settlementRatio"`
-	Comment       *string    `json:"comment"`
-	ImagePath     *string    `json:"imagePath"`
+	ID               *int64       `json:"id"`
+	TradeVersion     string       `json:"tradeVersion" binding:"required"`
+	EntryType        fx.EntryType `json:"entryType"`
+	Symbol           string       `json:"symbol" binding:"required"`
+	TradeType        fx.TradeType `json:"tradeType"`
+	ContractAt       time.Time    `json:"contractAt"`
+	FibonacciType    string       `json:"fibonacciType" binding:"required"`
+	FibonacciBar     string       `json:"fibonacciBar" binding:"required"`
+	ContractPrice    float64      `json:"contractPrice"`
+	LossPrice        float64      `json:"lossPrice"`
+	PositionRatio    int          `json:"positionRatio"`
+	PriceJpy         float64      `json:"priceJpy"`
+	Lot              *float64     `json:"lot"`
+	SettlementAmount int          `json:"settlementAmount"`
+	LossPips         int          `json:"lossPips"`
+	SettlementRatio  *float64     `json:"settlementRatio"`
+	Comment          *string      `json:"comment"`
+	ImagePath        *string      `json:"imagePath"`
 }
 
 func (ep *EntryParam) ToDomain() *fx.TradeEntry {

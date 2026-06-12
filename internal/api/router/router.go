@@ -19,8 +19,10 @@ func Setup(
 	summerTimeController *controller.SummerTimeController,
 	barDataController *controller.BarDataController,
 ) {
+	api := engine.Group("/api")
+
 	// 認証不要エンドポイント（@PublicApi相当）
-	v1Public := engine.Group("/v1/fx/master-list")
+	v1Public := api.Group("/v1/fx/master-list")
 	{
 		v1Public.GET("/symbol/:symbolType", masterListController.Symbol)
 		v1Public.GET("/country", masterListController.Country)
@@ -30,7 +32,7 @@ func Setup(
 	}
 
 	// 認証必須エンドポイント（JWT + Auth middleware）
-	v1 := engine.Group("/v1")
+	v1 := api.Group("/v1")
 	v1.Use(jwtMiddleware)
 	v1.Use(authMiddleware)
 	{

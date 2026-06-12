@@ -17,19 +17,19 @@ import (
 type GaitameRateService struct {
 	symbolRepo  fxrepository.SymbolRepository
 	httpClient  *http.Client
-	baseURL     string
+	rateURL     string
 	redisClient *goredis.Client
 }
 
 func NewGaitameRateService(
 	symbolRepo fxrepository.SymbolRepository,
-	baseURL string,
+	rateURL string,
 	redisClient *goredis.Client,
 ) *GaitameRateService {
 	return &GaitameRateService{
 		symbolRepo:  symbolRepo,
 		httpClient:  &http.Client{Timeout: 10 * time.Second},
-		baseURL:     baseURL,
+		rateURL:     rateURL,
 		redisClient: redisClient,
 	}
 }
@@ -49,9 +49,13 @@ func (s *GaitameRateService) RefreshRate(ctx context.Context, contractHm string)
 		symbolSet[s] = struct{}{}
 	}
 
-	resp, err := s.httpClient.Get(s.baseURL + "/v3/info/prices/rate")
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.rateURL, nil)
 	if err != nil {
-		return fmt.Errorf("Gaitameレート取得エラー。target=%s: %w", contractHm, err)
+		return fmt.Errorf("gaitameリクエスト生成エラー。target=%s: %w", contractHm, err)
+	}
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("gaitameレート取得エラー。target=%s: %w", contractHm, err)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -60,17 +64,17 @@ func (s *GaitameRateService) RefreshRate(ctx context.Context, contractHm string)
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Gaitameレート取得エラー。target=%s status=%d", contractHm, resp.StatusCode)
+		return fmt.Errorf("gaitameレート取得エラー。target=%s status=%d", contractHm, resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Gaitameレスポンス読み込みエラー。target=%s: %w", contractHm, err)
+		return fmt.Errorf("gaitameレスポンス読み込みエラー。target=%s: %w", contractHm, err)
 	}
 
 	var dto gaitameRateDto
 	if err := json.Unmarshal(body, &dto); err != nil {
-		return fmt.Errorf("Gaitameレスポンスパースエラー。target=%s: %w", contractHm, err)
+		return fmt.Errorf("gaitameレスポンスパースエラー。target=%s: %w", contractHm, err)
 	}
 
 	if len(dto.Data) == 0 {

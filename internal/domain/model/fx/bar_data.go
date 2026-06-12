@@ -17,8 +17,8 @@ type BarData struct {
 }
 
 type BarDataStatus struct {
-	Symbol             string
-	BarDateTimeMinS    *string
-	BarDateTimeMaxS    *string
-	Count              int
+	Symbol          string
+	BarDateTimeMinS *string
+	BarDateTimeMaxS *string
+	Count           int
 }

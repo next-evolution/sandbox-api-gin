@@ -8,9 +8,9 @@ import (
 )
 
 type GetMasterUseCase struct {
-	symbolRepo             fxrepository.SymbolRepository
-	countryRepo            fxrepository.CountryRepository
-	economicIndicatorRepo  fxrepository.EconomicIndicatorRepository
+	symbolRepo            fxrepository.SymbolRepository
+	countryRepo           fxrepository.CountryRepository
+	economicIndicatorRepo fxrepository.EconomicIndicatorRepository
 }
 
 func NewGetMasterUseCase(

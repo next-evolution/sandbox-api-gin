@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -123,6 +124,7 @@ func handleError(c *gin.Context, err error) {
 			Message: err.Error(),
 		})
 	default:
+		slog.Error("internal server error", "error", err)
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 			Status:  http.StatusInternalServerError,
 			Error:   "INTERNAL_SERVER_ERROR",

@@ -155,13 +155,14 @@ func (r *MySQLBarDataRepository) Search(ctx context.Context, symbol string, barT
 
 // appendDateRange はyyyyMMdd形式の日付範囲条件をクエリに追加する。
 func appendDateRange(query string, args []any, barDateFrom, barDateTo string) (string, []any) {
-	if barDateFrom != "" && barDateTo != "" {
+	switch {
+	case barDateFrom != "" && barDateTo != "":
 		query += ` AND B.bar_date_time BETWEEN STR_TO_DATE(CONCAT(?, '000000'), '%Y%m%d%H%i%s') AND STR_TO_DATE(CONCAT(?, '235959'), '%Y%m%d%H%i%s')`
 		args = append(args, barDateFrom, barDateTo)
-	} else if barDateFrom != "" {
+	case barDateFrom != "":
 		query += ` AND B.bar_date_time >= STR_TO_DATE(CONCAT(?, '000000'), '%Y%m%d%H%i%s')`
 		args = append(args, barDateFrom)
-	} else if barDateTo != "" {
+	case barDateTo != "":
 		query += ` AND B.bar_date_time <= STR_TO_DATE(CONCAT(?, '235959'), '%Y%m%d%H%i%s')`
 		args = append(args, barDateTo)
 	}
