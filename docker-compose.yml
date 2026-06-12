@@ -17,7 +17,7 @@ services:
       - ./mysql/50-server.cnf:/etc/my.cnf.d/50-server.cnf
       - ./mysql/initdb.d/:/docker-entrypoint-initdb.d
       - ./local/work:/work
-      - sandbox-mysql:/var/lib/mysql
+      - mysql:/var/lib/mysql
     working_dir: /work
   redis:
     # platform: linux/arm64/v8
@@ -30,7 +30,7 @@ services:
       - "${REDIS_PORT}:6379"
     volumes:
       - ./local/work:/work
-      - sandbox-redis:/data
+      - redis:/data
 volumes:
-  sandbox-mysql:
-  sandbox-redis:
+  mysql:
+  redis:
