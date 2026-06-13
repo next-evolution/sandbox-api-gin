@@ -2,7 +2,7 @@
 
 Java SpringBoot（`docs/ref_src`）と Go Gin の実装差異。
 
-## ZigZag（4エンドポイント）
+## ZigZag（4エンドポイント） ✅ 実装済み
 
 | メソッド | パス |
 |---|---|

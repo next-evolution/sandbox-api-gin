@@ -33,6 +33,8 @@ import (
 	"sandbox-api-gin/internal/config"
 	fxservice "sandbox-api-gin/internal/domain/service/fx"
 	"sandbox-api-gin/internal/infrastructure/external"
+	zigzagusecase "sandbox-api-gin/internal/application/usecase/fx/zigzag"
+
 	"sandbox-api-gin/internal/infrastructure/infradb"
 	infradbfx "sandbox-api-gin/internal/infrastructure/infradb/fx"
 	"sandbox-api-gin/internal/infrastructure/infraredis"
@@ -154,6 +156,14 @@ func run() error {
 		cfg.StorageBucket, cfg.StorageFX, cfg.IndicatorExcludeList,
 	)
 
+	// ZigZag
+	zigZagRepo := infradbfx.NewMySQLZigZagRepository(db)
+	zigZagDomainService := fxservice.NewZigZagDomainService()
+	searchZigZagUseCase := zigzagusecase.NewSearchZigZagUseCase(zigZagRepo)
+	getZigZagStatusUseCase := zigzagusecase.NewGetZigZagStatusUseCase(zigZagRepo)
+	generateZigZagUseCase := zigzagusecase.NewGenerateZigZagUseCase(zigZagRepo, zigZagDomainService)
+	getZigZagBarDataUseCase := zigzagusecase.NewGetZigZagBarDataUseCase(zigZagRepo)
+
 	// コントローラ
 	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
 	userController := controller.NewUserController(getProfileUseCase, registerUserUseCase, updateUserUseCase)
@@ -171,6 +181,9 @@ func run() error {
 		searchEconomicIndicatorDataUseCase, getEconomicIndicatorDataUseCase,
 		addEconomicIndicatorDataUseCase, updateEconomicIndicatorDataUseCase,
 		importEconomicIndicatorDataUseCase,
+	)
+	zigZagController := controller.NewZigZagController(
+		searchZigZagUseCase, getZigZagStatusUseCase, generateZigZagUseCase, getZigZagBarDataUseCase,
 	)
 
 	// ミドルウェア
@@ -199,6 +212,7 @@ func run() error {
 		masterListController, symbolController,
 		countryController, summerTimeController, barDataController,
 		economicIndicatorController, economicIndicatorDataController,
+		zigZagController,
 	)
 
 	// Graceful Shutdown

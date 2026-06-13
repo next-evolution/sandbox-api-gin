@@ -20,6 +20,7 @@ func Setup(
 	barDataController *controller.BarDataController,
 	economicIndicatorController *controller.EconomicIndicatorController,
 	economicIndicatorDataController *controller.EconomicIndicatorDataController,
+	zigZagController *controller.ZigZagController,
 ) {
 	api := engine.Group("/api")
 
@@ -83,6 +84,14 @@ func Setup(
 			{
 				barData.POST("", barDataController.Search)
 				barData.GET("/:symbolType/:barType", barDataController.Status)
+			}
+
+			zigzag := fx.Group("/zigzag")
+			{
+				zigzag.POST("", zigZagController.Search)
+				zigzag.POST("/status", zigZagController.Status)
+				zigzag.POST("/generate", zigZagController.Generate)
+				zigzag.POST("/bar-data", zigZagController.BarData)
 			}
 
 			economicIndicator := fx.Group("/economic-indicator")
