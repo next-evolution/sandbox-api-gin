@@ -143,6 +143,10 @@ func run() error {
 	updateSummerTimeUseCase := summertime.NewUpdateSummerTimeUseCase(summerTimeRepo)
 	searchBarDataUseCase := bardata.NewSearchBarDataUseCase(barDataRepo)
 	statusBarDataUseCase := bardata.NewStatusBarDataUseCase(barDataRepo)
+	importCsvBarDataUseCase := bardata.NewImportCsvBarDataUseCase(
+		barDataRepo, cfg.StorageBucket, cfg.StorageFX,
+		cfg.CsvBulkLoadSize, cfg.ImportCheckSkip,
+	)
 	searchEconomicIndicatorUseCase := economicindicator.NewSearchEconomicIndicatorUseCase(economicIndicatorRepo)
 	getEconomicIndicatorUseCase := economicindicator.NewGetEconomicIndicatorUseCase(economicIndicatorRepo)
 	addEconomicIndicatorUseCase := economicindicator.NewAddEconomicIndicatorUseCase(economicIndicatorRepo)
@@ -172,7 +176,7 @@ func run() error {
 	symbolController := controller.NewSymbolController(searchSymbolUseCase, addSymbolUseCase, getSymbolUseCase, updateSymbolUseCase)
 	countryController := controller.NewCountryController(searchCountryUseCase, addCountryUseCase, getCountryUseCase, updateCountryUseCase)
 	summerTimeController := controller.NewSummerTimeController(searchSummerTimeUseCase, addSummerTimeUseCase, getSummerTimeUseCase, updateSummerTimeUseCase)
-	barDataController := controller.NewBarDataController(searchBarDataUseCase, statusBarDataUseCase)
+	barDataController := controller.NewBarDataController(searchBarDataUseCase, statusBarDataUseCase, importCsvBarDataUseCase)
 	economicIndicatorController := controller.NewEconomicIndicatorController(
 		searchEconomicIndicatorUseCase, getEconomicIndicatorUseCase,
 		addEconomicIndicatorUseCase, updateEconomicIndicatorUseCase,

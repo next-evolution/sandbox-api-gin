@@ -84,6 +84,7 @@ func Setup(
 			{
 				barData.POST("", barDataController.Search)
 				barData.GET("/:symbolType/:barType", barDataController.Status)
+				barData.POST("/import-csv/:symbol/:barType/:skipLatest", barDataController.ImportCsv)
 			}
 
 			zigzag := fx.Group("/zigzag")
