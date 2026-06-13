@@ -18,9 +18,10 @@ internal/
   application/
     command/                       # コマンドオブジェクト（入力値の集約）
       fx/                          # FXコマンド（TradeSimulationCommand）
-    dto/                           # データ転送オブジェクト（UserDto）
+    dto/                           # データ転送オブジェクト（UserDto, FileImportResult）
       fx/                          # FX DTO（SymbolDto）
     usecase/                       # ユースケース（ビジネスロジック）
+      user/                        # Userユースケース（LoginUseCase, LogoutUseCase, GetProfileUseCase 他）
       fx/                          # FXユースケース（TradeSimulationUseCase, GetMasterUseCase）フラット
         country/                   # 国マスタ CRUD UseCase
         symbol/                    # シンボルマスタ CRUD UseCase
@@ -44,6 +45,20 @@ internal/
       response/                    # レスポンスDTO（ErrorResponse, ApiResponse など共通型）
         fx/                        # FXレスポンスDTO（BarDataSearchResponse, TradeSimulationResponse 他）
     router/                        # ルーティング設定
+```
+
+### パッケージ命名規約（User機能）
+
+ファイル名に `login` / `logout` / `user` を含むものは `user` パッケージに配置する。
+
+| ディレクトリ | パッケージ名 |
+|---|---|
+| `internal/application/usecase/user/` | `user`（LoginUseCase, LogoutUseCase, GetProfileUseCase, RegisterUserUseCase, UpdateUserUseCase） |
+
+インポート時は `userusecase` エイリアスを使用する（FX機能の `fxusecase` と対称）。
+
+```go
+userusecase "sandbox-api-gin/internal/application/usecase/user"
 ```
 
 ### パッケージ命名規約（FX機能）

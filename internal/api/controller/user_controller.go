@@ -9,20 +9,20 @@ import (
 	"sandbox-api-gin/internal/api/dto/request"
 	"sandbox-api-gin/internal/api/dto/response"
 	"sandbox-api-gin/internal/application/command"
-	"sandbox-api-gin/internal/application/usecase"
+	userusecase "sandbox-api-gin/internal/application/usecase/user"
 	"sandbox-api-gin/internal/domain/apperror"
 )
 
 type UserController struct {
-	getProfileUseCase   *usecase.GetProfileUseCase
-	registerUserUseCase *usecase.RegisterUserUseCase
-	updateUserUseCase   *usecase.UpdateUserUseCase
+	getProfileUseCase   *userusecase.GetProfileUseCase
+	registerUserUseCase *userusecase.RegisterUserUseCase
+	updateUserUseCase   *userusecase.UpdateUserUseCase
 }
 
 func NewUserController(
-	getProfileUseCase *usecase.GetProfileUseCase,
-	registerUserUseCase *usecase.RegisterUserUseCase,
-	updateUserUseCase *usecase.UpdateUserUseCase,
+	getProfileUseCase *userusecase.GetProfileUseCase,
+	registerUserUseCase *userusecase.RegisterUserUseCase,
+	updateUserUseCase *userusecase.UpdateUserUseCase,
 ) *UserController {
 	return &UserController{
 		getProfileUseCase:   getProfileUseCase,
