@@ -532,3 +532,54 @@ JWT Middleware → Auth Middleware を通過する（認証必須）。
 | `position.profitAmount` | 損益金額（損失時は負値） |
 | `position.lossAmount` | そのポジションのロットに対する最大損失額 |
 | `position.settlementRatio` | `profitAmount / lossAmount` |
+
+---
+
+### ZigZag（認証必須）
+
+| メソッド | パス | 説明 |
+|---|---|---|
+| POST | /v1/fx/zigzag | ZigZag検索 |
+| POST | /v1/fx/zigzag/status | ZigZagステータス一覧取得 |
+| POST | /v1/fx/zigzag/generate | ZigZag生成 |
+| POST | /v1/fx/zigzag/bar-data | ZigZagバーデータ取得 |
+
+#### POST /v1/fx/zigzag（ZigZag検索）
+
+リクエスト:
+
+| フィールド | 型 | 必須 | 説明 |
+|---|---|---|---|
+| `barType` | string | ○ | `"15M"/"1H"/"4H"/"1D"` |
+| `symbol` | string | ○ | シンボル |
+| `depth` | int16 | ○ | ZigZag深さ（≥1） |
+| `barDateTimeMin` | datetime | ○ | 検索期間（開始） |
+| `barDateTimeMax` | datetime | ○ | 検索期間（終了） |
+| `wave` | int | - | Waveフィルタ |
+| `previousWave` | int | - | 前waveフィルタ |
+| `nextWave` | int | - | 次waveフィルタ |
+| `next2Wave` | int | - | 2つ先waveフィルタ |
+| `direction4h200` / `direction4h75` / `direction4h20` | int | - | 4H SMA方向フィルタ |
+| `direction1h200` / `direction15m200` | int | - | 1H/15M SMA方向フィルタ |
+| `wave4h` | int | - | 4H waveフィルタ |
+| `directionTarget4h200` | int | - | Target4h SMA200方向フィルタ |
+| `page` | int | ○ | ページ（≥1） |
+| `size` | int | ○ | ページサイズ（≥1） |
+
+direction フィルタ値: `999`=全件、`0`=ニュートラル、`1`/`2`=上昇、`-1`/`-2`=下降
+
+レスポンス: `ZigZagSearchResponse`（returnCode/totalCount/searchCount/totalPage/list）
+
+#### POST /v1/fx/zigzag/status
+
+リクエスト: `symbolType`（Trade/Analyze）、`barType`、`depth`
+
+#### POST /v1/fx/zigzag/generate
+
+リクエスト: `symbol`、`barType`、`depth`、`barDateTime`、`loadSize`（処理件数上限）
+
+warn=true の場合 returnCode=1（Warn）、message にエラー理由を返す。
+
+#### POST /v1/fx/zigzag/bar-data
+
+リクエスト: `barType`、`symbol`、`depth`、`waveStart`、`wave`

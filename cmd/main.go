@@ -23,16 +23,18 @@ import (
 	"sandbox-api-gin/internal/api/middleware"
 	"sandbox-api-gin/internal/api/router"
 	fxusecase "sandbox-api-gin/internal/application/usecase/fx"
-	userusecase "sandbox-api-gin/internal/application/usecase/user"
 	"sandbox-api-gin/internal/application/usecase/fx/bardata"
 	"sandbox-api-gin/internal/application/usecase/fx/country"
 	"sandbox-api-gin/internal/application/usecase/fx/economicindicator"
 	"sandbox-api-gin/internal/application/usecase/fx/economicindicatordata"
 	"sandbox-api-gin/internal/application/usecase/fx/summertime"
 	"sandbox-api-gin/internal/application/usecase/fx/symbol"
+	zigzagusecase "sandbox-api-gin/internal/application/usecase/fx/zigzag"
+	userusecase "sandbox-api-gin/internal/application/usecase/user"
 	"sandbox-api-gin/internal/config"
 	fxservice "sandbox-api-gin/internal/domain/service/fx"
 	"sandbox-api-gin/internal/infrastructure/external"
+
 	"sandbox-api-gin/internal/infrastructure/infradb"
 	infradbfx "sandbox-api-gin/internal/infrastructure/infradb/fx"
 	"sandbox-api-gin/internal/infrastructure/infraredis"
@@ -68,7 +70,7 @@ func run() error {
 	}
 
 	// MySQL接続
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Asia%%2FTokyo",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Asia%%2FTokyo&clientFoundRows=true",
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBSchema,
 	)
 	db, err := sqlx.Open("mysql", dsn)
@@ -154,6 +156,14 @@ func run() error {
 		cfg.StorageBucket, cfg.StorageFX, cfg.IndicatorExcludeList,
 	)
 
+	// ZigZag
+	zigZagRepo := infradbfx.NewMySQLZigZagRepository(db)
+	zigZagDomainService := fxservice.NewZigZagDomainService()
+	searchZigZagUseCase := zigzagusecase.NewSearchZigZagUseCase(zigZagRepo)
+	getZigZagStatusUseCase := zigzagusecase.NewGetZigZagStatusUseCase(zigZagRepo)
+	generateZigZagUseCase := zigzagusecase.NewGenerateZigZagUseCase(zigZagRepo, zigZagDomainService)
+	getZigZagBarDataUseCase := zigzagusecase.NewGetZigZagBarDataUseCase(zigZagRepo)
+
 	// コントローラ
 	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
 	userController := controller.NewUserController(getProfileUseCase, registerUserUseCase, updateUserUseCase)
@@ -171,6 +181,9 @@ func run() error {
 		searchEconomicIndicatorDataUseCase, getEconomicIndicatorDataUseCase,
 		addEconomicIndicatorDataUseCase, updateEconomicIndicatorDataUseCase,
 		importEconomicIndicatorDataUseCase,
+	)
+	zigZagController := controller.NewZigZagController(
+		searchZigZagUseCase, getZigZagStatusUseCase, generateZigZagUseCase, getZigZagBarDataUseCase,
 	)
 
 	// ミドルウェア
@@ -199,6 +212,7 @@ func run() error {
 		masterListController, symbolController,
 		countryController, summerTimeController, barDataController,
 		economicIndicatorController, economicIndicatorDataController,
+		zigZagController,
 	)
 
 	// Graceful Shutdown

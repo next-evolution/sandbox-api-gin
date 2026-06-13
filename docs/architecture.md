@@ -96,6 +96,16 @@ userusecase "sandbox-api-gin/internal/application/usecase/user"
 | github.com/joho/godotenv | .envファイル読み込み |
 | github.com/gin-contrib/cors | CORSミドルウェア |
 
+## MySQL DSN パラメータ
+
+`cmd/main.go` で設定している DSN パラメータの説明。
+
+| パラメータ | 値 | 理由 |
+|---|---|---|
+| `parseTime` | `true` | `DATETIME` カラムを `time.Time` に自動変換 |
+| `loc` | `Asia/Tokyo` | DB の DATETIME（タイムゾーンなし）を JST として解釈。Java の `LocalDateTime` と同等の動作 |
+| `clientFoundRows` | `true` | UPDATE で WHERE マッチ行数（found rows）を返す。Java Connector/J のデフォルト動作に合わせる。これがないと値が変わらない UPDATE で `RowsAffected()` が 0 になり誤エラーになる |
+
 ## 認証フロー詳細
 
 ### JWT Middleware（`internal/api/middleware/jwt_middleware.go`）

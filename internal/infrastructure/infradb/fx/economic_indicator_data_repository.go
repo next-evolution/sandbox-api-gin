@@ -52,12 +52,12 @@ const selectEconomicIndicatorDataColumns = `
 	DATE_FORMAT(T.publication, '%Y-%m-%d')  AS publicationDate,
 	DATE_FORMAT(T.publication, '%H:%i')     AS publicationTime,
 	DAYOFWEEK(T.publication) - 1           AS dayOfWeek,
-	T.sub_title                             AS subTitle,
+	COALESCE(T.sub_title, '')               AS subTitle,
 	T.result_value                          AS resultValue,
-	T.forecast_value                        AS forecastValue,
-	T.previous_value                        AS previousValue,
-	E.unit_of_value                         AS unitOfValue,
-	T.memo                                  AS memo`
+	COALESCE(T.forecast_value, '')          AS forecastValue,
+	COALESCE(T.previous_value, '')          AS previousValue,
+	COALESCE(E.unit_of_value, '')           AS unitOfValue,
+	COALESCE(T.memo, '')                    AS memo`
 
 func (r *MySQLEconomicIndicatorDataRepository) buildWhere(id int64, importance, countryCode, publicationBaseDate string) (string, []interface{}) {
 	where := ``
@@ -244,17 +244,17 @@ func (r *MySQLEconomicIndicatorDataRepository) LoadDiff(ctx context.Context) ([]
 			C.name           AS countryName,
 			C.name_short     AS countryNameShort,
 			E.name           AS name,
-			COALESCE(E.description, '') AS description,
+			COALESCE(E.description, '')   AS description,
 			T.publication    AS publication,
 			''               AS publicationDate,
 			''               AS publicationTime,
 			0                AS dayOfWeek,
-			T.sub_title      AS subTitle,
+			COALESCE(T.sub_title, '')      AS subTitle,
 			T.result_value   AS resultValue,
-			T.forecast_value AS forecastValue,
-			T.previous_value AS previousValue,
-			E.unit_of_value  AS unitOfValue,
-			T.memo           AS memo
+			COALESCE(T.forecast_value, '') AS forecastValue,
+			COALESCE(T.previous_value, '') AS previousValue,
+			COALESCE(E.unit_of_value, '')  AS unitOfValue,
+			COALESCE(T.memo, '')           AS memo
 		FROM fx_economic_indicator_data T
 		INNER JOIN fx_economic_indicator E ON E.id = T.id
 		INNER JOIN fx_country C ON C.code = E.country_code
