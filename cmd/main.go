@@ -70,7 +70,7 @@ func run() error {
 	}
 
 	// MySQL接続
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Asia%%2FTokyo",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Asia%%2FTokyo&clientFoundRows=true",
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBSchema,
 	)
 	db, err := sqlx.Open("mysql", dsn)

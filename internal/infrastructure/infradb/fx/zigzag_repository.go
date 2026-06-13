@@ -750,7 +750,7 @@ func (r *MySQLZigZagRepository) GetLastWave(ctx context.Context, barType fxmodel
 		    ,support             AS support
 		    ,previous_wave_start AS previousWaveStart
 		    ,previous_wave       AS previousWave
-		    ,wave_memo           AS waveMemo
+		    ,COALESCE(wave_memo, '') AS waveMemo
 		FROM fx_zigzag_wave_%s
 		WHERE symbol = ? AND depth = ?
 		ORDER BY wave_start DESC

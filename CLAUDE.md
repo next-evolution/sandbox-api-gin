@@ -145,6 +145,12 @@ security → domain
 Goのdatabase/sqlドライバは `bit(1)` を `[]byte` で返す。
 SQLクエリで `(col+0) AS col` にキャストし、Go側では `uint8` でスキャンして `!= 0` でbool変換する。
 
+### MySQL UPDATE の `clientFoundRows`（DSN必須設定）
+Java Connector/J はデフォルトで WHERE 句マッチ行数（found rows）を返すが、
+`go-sql-driver/mysql` デフォルトは実変更行数（affected rows）を返す。
+値が変わらない UPDATE で `RowsAffected()` が 0 になり `rows != 1` エラーになるため、
+DSN に `clientFoundRows=true` が必須。`cmd/main.go` の DSN に設定済み。
+
 ### 日時フォーマット
 `UserDto` の日時フィールドはJavaに合わせて `"yyyy-MM-dd HH:mm:ss"` 形式。
 `internal/application/dto/user_dto.go` の `DateTime` 型でカスタムMarshal。
