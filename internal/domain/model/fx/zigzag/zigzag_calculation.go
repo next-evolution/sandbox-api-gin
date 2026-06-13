@@ -22,36 +22,36 @@ func copyPrice(p price) price {
 // ZigZagCalculation はJavaのZigZagCalculationに相当する。
 // JavaのBigDecimalはfloat64でポーティングしている。
 type ZigZagCalculation struct {
-	Symbol   string
-	Depth    int
+	Symbol      string
+	Depth       int
 	BarDateTime time.Time
 
-	Resistance         price
-	ResistanceFractal  price
-	Support            price
-	SupportFractal     price
-	PriceHigh          price
-	PriceLow           price
-	BackStepHigh       price
-	BackStepLow        price
+	Resistance        price
+	ResistanceFractal price
+	Support           price
+	SupportFractal    price
+	PriceHigh         price
+	PriceLow          price
+	BackStepHigh      price
+	BackStepLow       price
 
 	FractalHigh float64
 	FractalLow  float64
 
-	Wave             int
-	WaveStart        bool
-	BreakResistance  bool
-	BreakSupport     bool
-	WaveFractal      int
+	Wave                   int
+	WaveStart              bool
+	BreakResistance        bool
+	BreakSupport           bool
+	WaveFractal            int
 	BreakResistanceFractal bool
 	BreakSupportFractal    bool
-	UpTrend          bool
-	BackStepUp       int
-	BackStepDown     int
+	UpTrend                bool
+	BackStepUp             int
+	BackStepDown           int
 
-	Message       string
-	ID            int
-	WaveList      []ZigZagWave
+	Message         string
+	ID              int
+	WaveList        []ZigZagWave
 	WaveFractalList []ZigZagWave
 }
 
@@ -61,28 +61,28 @@ func NewZigZagCalculation(z *ZigZag) *ZigZagCalculation {
 		Depth:       z.Depth,
 		BarDateTime: z.BarDateTime,
 
-		Resistance:         newPrice(z.Resistance, z.ResistanceBarDateTime),
-		ResistanceFractal:  newPrice(z.ResistanceFractal, z.ResistanceFractalBarDateTime),
-		Support:            newPrice(z.Support, z.SupportBarDateTime),
-		SupportFractal:     newPrice(z.SupportFractal, z.SupportFractalBarDateTime),
-		PriceHigh:          newPrice(z.PriceHigh, z.PriceHighBarDateTime),
-		PriceLow:           newPrice(z.PriceLow, z.PriceLowBarDateTime),
-		BackStepHigh:       newPrice(z.BackStepHigh, z.BackStepHighBarDateTime),
-		BackStepLow:        newPrice(z.BackStepLow, z.BackStepLowBarDateTime),
-		FractalHigh:        z.FractalHigh,
-		FractalLow:         z.FractalLow,
+		Resistance:        newPrice(z.Resistance, z.ResistanceBarDateTime),
+		ResistanceFractal: newPrice(z.ResistanceFractal, z.ResistanceFractalBarDateTime),
+		Support:           newPrice(z.Support, z.SupportBarDateTime),
+		SupportFractal:    newPrice(z.SupportFractal, z.SupportFractalBarDateTime),
+		PriceHigh:         newPrice(z.PriceHigh, z.PriceHighBarDateTime),
+		PriceLow:          newPrice(z.PriceLow, z.PriceLowBarDateTime),
+		BackStepHigh:      newPrice(z.BackStepHigh, z.BackStepHighBarDateTime),
+		BackStepLow:       newPrice(z.BackStepLow, z.BackStepLowBarDateTime),
+		FractalHigh:       z.FractalHigh,
+		FractalLow:        z.FractalLow,
 
-		Wave:             z.Wave,
-		BreakResistance:  z.BreakResistance,
-		BreakSupport:     z.BreakSupport,
-		WaveFractal:      z.Wave,
+		Wave:                   z.Wave,
+		BreakResistance:        z.BreakResistance,
+		BreakSupport:           z.BreakSupport,
+		WaveFractal:            z.Wave,
 		BreakResistanceFractal: z.BreakResistance,
 		BreakSupportFractal:    z.BreakSupport,
-		UpTrend:          z.UpTrend,
-		BackStepUp:       z.BackStepUp,
-		BackStepDown:     z.BackStepDown,
+		UpTrend:                z.UpTrend,
+		BackStepUp:             z.BackStepUp,
+		BackStepDown:           z.BackStepDown,
 
-		WaveList:      []ZigZagWave{},
+		WaveList:        []ZigZagWave{},
 		WaveFractalList: []ZigZagWave{},
 	}
 }
@@ -93,27 +93,27 @@ func (c *ZigZagCalculation) Snapshot() *ZigZagCalculation {
 		Depth:       c.Depth,
 		BarDateTime: c.BarDateTime,
 
-		Resistance:         copyPrice(c.Resistance),
-		ResistanceFractal:  copyPrice(c.ResistanceFractal),
-		Support:            copyPrice(c.Support),
-		SupportFractal:     copyPrice(c.SupportFractal),
-		PriceHigh:          copyPrice(c.PriceHigh),
-		PriceLow:           copyPrice(c.PriceLow),
-		BackStepHigh:       copyPrice(c.BackStepHigh),
-		BackStepLow:        copyPrice(c.BackStepLow),
-		FractalHigh:        c.FractalHigh,
-		FractalLow:         c.FractalLow,
+		Resistance:        copyPrice(c.Resistance),
+		ResistanceFractal: copyPrice(c.ResistanceFractal),
+		Support:           copyPrice(c.Support),
+		SupportFractal:    copyPrice(c.SupportFractal),
+		PriceHigh:         copyPrice(c.PriceHigh),
+		PriceLow:          copyPrice(c.PriceLow),
+		BackStepHigh:      copyPrice(c.BackStepHigh),
+		BackStepLow:       copyPrice(c.BackStepLow),
+		FractalHigh:       c.FractalHigh,
+		FractalLow:        c.FractalLow,
 
-		Wave:             c.Wave,
-		WaveStart:        false,
-		BreakResistance:  c.BreakResistance,
-		BreakSupport:     c.BreakSupport,
-		WaveFractal:      c.WaveFractal,
+		Wave:                   c.Wave,
+		WaveStart:              false,
+		BreakResistance:        c.BreakResistance,
+		BreakSupport:           c.BreakSupport,
+		WaveFractal:            c.WaveFractal,
 		BreakResistanceFractal: c.BreakResistanceFractal,
 		BreakSupportFractal:    c.BreakSupportFractal,
-		UpTrend:          c.UpTrend,
-		BackStepUp:       c.BackStepUp,
-		BackStepDown:     c.BackStepDown,
+		UpTrend:                c.UpTrend,
+		BackStepUp:             c.BackStepUp,
+		BackStepDown:           c.BackStepDown,
 	}
 }
 
@@ -143,15 +143,15 @@ func (c *ZigZagCalculation) ToEntity() *ZigZag {
 		BackStepHighBarDateTime:      c.BackStepHigh.BarDateTime,
 		BackStepLowBarDateTime:       c.BackStepLow.BarDateTime,
 
-		Wave:             c.Wave,
-		BreakResistance:  c.BreakResistance,
-		BreakSupport:     c.BreakSupport,
-		WaveFractal:      c.WaveFractal,
+		Wave:                   c.Wave,
+		BreakResistance:        c.BreakResistance,
+		BreakSupport:           c.BreakSupport,
+		WaveFractal:            c.WaveFractal,
 		BreakResistanceFractal: c.BreakResistanceFractal,
 		BreakSupportFractal:    c.BreakSupportFractal,
-		UpTrend:          c.UpTrend,
-		BackStepUp:       c.BackStepUp,
-		BackStepDown:     c.BackStepDown,
+		UpTrend:                c.UpTrend,
+		BackStepUp:             c.BackStepUp,
+		BackStepDown:           c.BackStepDown,
 	}
 }
 
@@ -197,7 +197,7 @@ func (c *ZigZagCalculation) breakResistanceSupport(r *ZigZagCalculation, target 
 			c.addWave(r.Resistance.BarDateTime, r.Support.BarDateTime,
 				r.Resistance.Price, r.Support.Price, r.Wave, "BRS_DW1")
 		}
-		c.Wave = c.Wave - 1
+		c.Wave--
 	}
 
 	c.Support = newPrice(target.BarLowPrice, target.BarDateTime)
@@ -228,7 +228,7 @@ func (c *ZigZagCalculation) breakSupportResistance(r *ZigZagCalculation, target 
 			c.addWave(r.Support.BarDateTime, r.Resistance.BarDateTime,
 				r.Resistance.Price, r.Support.Price, r.Wave, "BSR_UP1")
 		}
-		c.Wave = c.Wave + 1
+		c.Wave++
 	}
 
 	c.Resistance = newPrice(target.BarHighPrice, target.BarDateTime)
@@ -352,7 +352,7 @@ func (c *ZigZagCalculation) calculateBreakResistance(r *ZigZagCalculation, targe
 					c.addWave(r.Support.BarDateTime, c.Resistance.BarDateTime,
 						c.Resistance.Price, r.Support.Price, r.Wave, "BR1_UP1")
 				}
-				c.Wave = c.Wave + 1
+				c.Wave++
 			}
 		}
 
@@ -371,7 +371,7 @@ func (c *ZigZagCalculation) calculateBreakResistance(r *ZigZagCalculation, targe
 					c.addWave(r.Support.BarDateTime, c.Resistance.BarDateTime,
 						c.Resistance.Price, r.Support.Price, r.Wave, "BR2_UP1")
 				}
-				c.Wave = c.Wave + 1
+				c.Wave++
 			}
 		}
 		c.FractalLow = target.BarHighPrice
@@ -407,7 +407,7 @@ func (c *ZigZagCalculation) calculateBreakSupport(r *ZigZagCalculation, target *
 					c.addWave(r.Support.BarDateTime, c.ResistanceFractal.BarDateTime,
 						r.Resistance.Price, r.Support.Price, r.Wave, "BS1_DW1")
 				}
-				c.Wave = c.Wave - 1
+				c.Wave--
 			}
 		}
 
@@ -426,7 +426,7 @@ func (c *ZigZagCalculation) calculateBreakSupport(r *ZigZagCalculation, target *
 					c.addWave(r.Resistance.BarDateTime, r.Support.BarDateTime,
 						r.Resistance.Price, r.Support.Price, r.Wave, "BS2_DW1")
 				}
-				c.Wave = c.Wave - 1
+				c.Wave--
 			}
 		}
 		c.FractalHigh = target.BarLowPrice

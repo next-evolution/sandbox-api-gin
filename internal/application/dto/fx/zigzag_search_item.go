@@ -3,17 +3,17 @@ package fxdto
 import "time"
 
 type ZigZagSearchItem struct {
-	Symbol         string
-	Depth          int
-	Target4h       ZigZagInfoSmaFibonacci
-	Current        ZigZagInfoSmaFibonacci
-	Previous       ZigZagInfo
-	Next           ZigZagInfo
-	Next2          ZigZagInfo
-	NextRsRate     float64
-	Next2MaxRate   float64
-	WaveDxy4h      float64
-	WaveDxy1h      float64
+	Symbol          string
+	Depth           int
+	Target4h        ZigZagInfoSmaFibonacci
+	Current         ZigZagInfoSmaFibonacci
+	Previous        ZigZagInfo
+	Next            ZigZagInfo
+	Next2           ZigZagInfo
+	NextRsRate      float64
+	Next2MaxRate    float64
+	WaveDxy4h       float64
+	WaveDxy1h       float64
 	FractalWaveList []ZigZagFractalWave
 }
 

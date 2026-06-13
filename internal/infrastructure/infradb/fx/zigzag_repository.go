@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -42,37 +43,37 @@ type zigzagSearchRecord struct {
 	Symbol string `db:"symbol"`
 	Depth  int    `db:"depth"`
 
-	CurWaveStart time.Time `db:"curWaveStart"`
-	CurWaveEnd   time.Time `db:"curWaveEnd"`
-	CurWave      int       `db:"curWave"`
-	CurResistance float64  `db:"curResistance"`
-	CurSupport    float64  `db:"curSupport"`
-	CurSma4h200sS float64  `db:"curSma4h200sS"`
-	CurSma4h200sE float64  `db:"curSma4h200sE"`
-	CurSma4h75sS  float64  `db:"curSma4h75sS"`
-	CurSma4h75sE  float64  `db:"curSma4h75sE"`
-	CurSma4h20sS  float64  `db:"curSma4h20sS"`
-	CurSma4h20sE  float64  `db:"curSma4h20sE"`
-	CurSma1h200sS float64  `db:"curSma1h200sS"`
-	CurSma1h200sE float64  `db:"curSma1h200sE"`
-	CurSma15m200sS float64 `db:"curSma15m200sS"`
-	CurSma15m200sE float64 `db:"curSma15m200sE"`
+	CurWaveStart   time.Time `db:"curWaveStart"`
+	CurWaveEnd     time.Time `db:"curWaveEnd"`
+	CurWave        int       `db:"curWave"`
+	CurResistance  float64   `db:"curResistance"`
+	CurSupport     float64   `db:"curSupport"`
+	CurSma4h200sS  float64   `db:"curSma4h200sS"`
+	CurSma4h200sE  float64   `db:"curSma4h200sE"`
+	CurSma4h75sS   float64   `db:"curSma4h75sS"`
+	CurSma4h75sE   float64   `db:"curSma4h75sE"`
+	CurSma4h20sS   float64   `db:"curSma4h20sS"`
+	CurSma4h20sE   float64   `db:"curSma4h20sE"`
+	CurSma1h200sS  float64   `db:"curSma1h200sS"`
+	CurSma1h200sE  float64   `db:"curSma1h200sE"`
+	CurSma15m200sS float64   `db:"curSma15m200sS"`
+	CurSma15m200sE float64   `db:"curSma15m200sE"`
 
-	T4hWaveStart  *time.Time `db:"t4hWaveStart"`
-	T4hWaveEnd    *time.Time `db:"t4hWaveEnd"`
-	T4hWave       int        `db:"t4hWave"`
-	T4hResistance float64    `db:"t4hResistance"`
-	T4hSupport    float64    `db:"t4hSupport"`
-	T4hSma4h200sS float64    `db:"t4hSma4h200sS"`
-	T4hSma4h200sE float64    `db:"t4hSma4h200sE"`
-	T4hSma4h75sS  float64    `db:"t4hSma4h75sS"`
-	T4hSma4h75sE  float64    `db:"t4hSma4h75sE"`
-	T4hSma4h20sS  float64    `db:"t4hSma4h20sS"`
-	T4hSma4h20sE  float64    `db:"t4hSma4h20sE"`
-	T4hSma1h200sS float64    `db:"t4hSma1h200sS"`
-	T4hSma1h200sE float64    `db:"t4hSma1h200sE"`
-	T4hSma15m200sS float64   `db:"t4hSma15m200sS"`
-	T4hSma15m200sE float64   `db:"t4hSma15m200sE"`
+	T4hWaveStart   *time.Time `db:"t4hWaveStart"`
+	T4hWaveEnd     *time.Time `db:"t4hWaveEnd"`
+	T4hWave        int        `db:"t4hWave"`
+	T4hResistance  float64    `db:"t4hResistance"`
+	T4hSupport     float64    `db:"t4hSupport"`
+	T4hSma4h200sS  float64    `db:"t4hSma4h200sS"`
+	T4hSma4h200sE  float64    `db:"t4hSma4h200sE"`
+	T4hSma4h75sS   float64    `db:"t4hSma4h75sS"`
+	T4hSma4h75sE   float64    `db:"t4hSma4h75sE"`
+	T4hSma4h20sS   float64    `db:"t4hSma4h20sS"`
+	T4hSma4h20sE   float64    `db:"t4hSma4h20sE"`
+	T4hSma1h200sS  float64    `db:"t4hSma1h200sS"`
+	T4hSma1h200sE  float64    `db:"t4hSma1h200sE"`
+	T4hSma15m200sS float64    `db:"t4hSma15m200sS"`
+	T4hSma15m200sE float64    `db:"t4hSma15m200sE"`
 
 	PrvWaveStart  *time.Time `db:"prvWaveStart"`
 	PrvWaveEnd    *time.Time `db:"prvWaveEnd"`
@@ -97,20 +98,20 @@ type zigzagSearchRecord struct {
 }
 
 type zigzagRecord struct {
-	Symbol string    `db:"symbol"`
-	Depth  int       `db:"depth"`
+	Symbol      string    `db:"symbol"`
+	Depth       int       `db:"depth"`
 	BarDateTime time.Time `db:"barDateTime"`
 
-	Resistance        float64   `db:"resistance"`
-	ResistanceFractal float64   `db:"resistanceFractal"`
-	Support           float64   `db:"support"`
-	SupportFractal    float64   `db:"supportFractal"`
-	PriceHigh         float64   `db:"priceHigh"`
-	PriceLow          float64   `db:"priceLow"`
-	BackStepHigh      float64   `db:"backStepHigh"`
-	BackStepLow       float64   `db:"backStepLow"`
-	FractalHigh       float64   `db:"fractalHigh"`
-	FractalLow        float64   `db:"fractalLow"`
+	Resistance        float64 `db:"resistance"`
+	ResistanceFractal float64 `db:"resistanceFractal"`
+	Support           float64 `db:"support"`
+	SupportFractal    float64 `db:"supportFractal"`
+	PriceHigh         float64 `db:"priceHigh"`
+	PriceLow          float64 `db:"priceLow"`
+	BackStepHigh      float64 `db:"backStepHigh"`
+	BackStepLow       float64 `db:"backStepLow"`
+	FractalHigh       float64 `db:"fractalHigh"`
+	FractalLow        float64 `db:"fractalLow"`
 
 	ResistanceBarDateTime        time.Time `db:"resistanceBarDateTime"`
 	ResistanceFractalBarDateTime time.Time `db:"resistanceFractalBarDateTime"`
@@ -455,12 +456,13 @@ func (r *MySQLZigZagRepository) GetBarDataList(ctx context.Context, barType fxmo
 		           ,COALESCE(next.wave_end, cur.wave_end) AS barDateTimeMax`
 	}
 
-	var extraJoins string
+	var extraJoinsPrev string
+	var extraJoinsNext string
 	if suffix == "4h" {
-		extraJoins = `LEFT JOIN fx_zigzag_wave_4h prev2
+		extraJoinsPrev = `LEFT JOIN fx_zigzag_wave_4h prev2
 		      ON prev2.symbol = cur.symbol AND prev2.depth = cur.depth
-		     AND prev2.wave_start = COALESCE(prev.previous_wave_start, cur.previous_wave_start)
-		LEFT JOIN fx_zigzag_wave_4h next2
+		     AND prev2.wave_start = COALESCE(prev.previous_wave_start, cur.previous_wave_start)`
+		extraJoinsNext = `LEFT JOIN fx_zigzag_wave_4h next2
 		      ON next2.symbol = cur.symbol AND next2.depth = cur.depth
 		     AND next2.wave_start = COALESCE(next.wave_end, cur.wave_end)
 		LEFT JOIN fx_zigzag_wave_4h next3
@@ -493,6 +495,7 @@ func (r *MySQLZigZagRepository) GetBarDataList(ctx context.Context, barType fxmo
 		    LEFT JOIN fx_zigzag_wave_4h next
 		          ON next.symbol = cur.symbol AND next.depth = cur.depth
 		         AND next.wave_start = cur.wave_end
+		    %s
 		) range_
 		INNER JOIN fx_bar_%s B
 		        ON B.symbol = ?
@@ -504,7 +507,7 @@ func (r *MySQLZigZagRepository) GetBarDataList(ctx context.Context, barType fxmo
 		LEFT JOIN fx_bar_%s_sma sma20
 		       ON sma20.symbol  = B.symbol AND sma20.bar_date_time  = B.bar_date_time AND sma20.sma_range  = 20
 		ORDER BY B.bar_date_time`,
-		rangeSel, extraJoins, suffix, suffix, suffix, suffix)
+		rangeSel, extraJoinsPrev, extraJoinsNext, suffix, suffix, suffix, suffix)
 
 	var recs []zigzagBarDataRecord
 	if err := r.db.SelectContext(ctx, &recs, query, symbol, depth, waveStart, symbol); err != nil {
@@ -779,21 +782,18 @@ func (r *MySQLZigZagRepository) InsertWaveBulk(ctx context.Context, barType fxmo
 	}
 	suffix := barType.Suffix()
 
+	placeholders := make([]string, len(waveList))
+	args := make([]any, 0, len(waveList)*10)
+	for i, w := range waveList {
+		placeholders[i] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		args = append(args, symbol, depth, w.WaveStart, w.WaveEnd, w.Wave,
+			w.Resistance, w.Support, w.PreviousWaveStart, w.PreviousWave, w.WaveMemo)
+	}
 	query := fmt.Sprintf(`
 		INSERT INTO fx_zigzag_wave_%s (
 		    symbol, depth, wave_start, wave_end, wave,
 		    resistance, support, previous_wave_start, previous_wave, wave_memo
-		) VALUES `, suffix)
-
-	args := make([]any, 0, len(waveList)*10)
-	for i, w := range waveList {
-		if i > 0 {
-			query += ","
-		}
-		query += "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-		args = append(args, symbol, depth, w.WaveStart, w.WaveEnd, w.Wave,
-			w.Resistance, w.Support, w.PreviousWaveStart, w.PreviousWave, w.WaveMemo)
-	}
+		) VALUES %s`, suffix, strings.Join(placeholders, ","))
 	query += ` ON DUPLICATE KEY UPDATE
 		wave_end            = VALUES(wave_end),
 		wave                = VALUES(wave),
@@ -837,15 +837,15 @@ func toZigZagDomain(rec *zigzagRecord) *zigzag.ZigZag {
 		BackStepHighBarDateTime:      rec.BackStepHighBarDateTime,
 		BackStepLowBarDateTime:       rec.BackStepLowBarDateTime,
 
-		Wave:             rec.Wave,
-		UpTrend:          rec.UpTrend != 0,
-		BreakResistance:  rec.BreakResistance != 0,
-		BreakSupport:     rec.BreakSupport != 0,
-		WaveFractal:      rec.Wave,
+		Wave:                   rec.Wave,
+		UpTrend:                rec.UpTrend != 0,
+		BreakResistance:        rec.BreakResistance != 0,
+		BreakSupport:           rec.BreakSupport != 0,
+		WaveFractal:            rec.Wave,
 		BreakResistanceFractal: rec.BreakResistance != 0,
 		BreakSupportFractal:    rec.BreakSupport != 0,
-		BackStepUp:       rec.BackStepUp,
-		BackStepDown:     rec.BackStepDown,
+		BackStepUp:             rec.BackStepUp,
+		BackStepDown:           rec.BackStepDown,
 
 		BarHighPrice:  rec.BarHighPrice,
 		BarLowPrice:   rec.BarLowPrice,

@@ -111,12 +111,12 @@ type ZigZagGenerateResponse struct {
 
 // ZigZagBarDataResponse は POST /v1/fx/zigzag/bar-data のレスポンス
 type ZigZagBarDataResponse struct {
-	ReturnCode       response.ReturnCode `json:"returnCode"`
-	BarType          string              `json:"barType"`
-	Symbol           string              `json:"symbol"`
-	Depth            int16               `json:"depth"`
-	Wave             int                 `json:"wave"`
-	ZigZagBarDataList []ZigZagBarData    `json:"zigZagBarDataList"`
+	ReturnCode        response.ReturnCode `json:"returnCode"`
+	BarType           string              `json:"barType"`
+	Symbol            string              `json:"symbol"`
+	Depth             int16               `json:"depth"`
+	Wave              int                 `json:"wave"`
+	ZigZagBarDataList []ZigZagBarData     `json:"zigZagBarDataList"`
 }
 
 type ZigZagBarData struct {

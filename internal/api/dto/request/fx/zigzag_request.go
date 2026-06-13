@@ -8,22 +8,22 @@ import (
 
 type ZigZagSearchRequest struct {
 	request.ApiSearchRequest
-	BarType        string    `json:"barType" binding:"required"`
-	Symbol         string    `json:"symbol" binding:"required"`
-	Depth          int16     `json:"depth" binding:"required,min=1"`
-	BarDateTimeMin time.Time `json:"barDateTimeMin" binding:"required"`
-	BarDateTimeMax time.Time `json:"barDateTimeMax" binding:"required"`
-	Wave           int       `json:"wave"`
-	PreviousWave   int       `json:"previousWave"`
-	NextWave       int       `json:"nextWave"`
-	Next2Wave      int       `json:"next2Wave"`
-	Direction4h200 int       `json:"direction4h200"`
-	Direction4h75  int       `json:"direction4h75"`
-	Direction4h20  int       `json:"direction4h20"`
-	Direction1h200 int       `json:"direction1h200"`
-	Direction15m200 int      `json:"direction15m200"`
-	Wave4h         int       `json:"wave4h"`
-	DirectionTarget4h200 int `json:"directionTarget4h200"`
+	BarType              string    `json:"barType" binding:"required"`
+	Symbol               string    `json:"symbol" binding:"required"`
+	Depth                int16     `json:"depth" binding:"required,min=1"`
+	BarDateTimeMin       time.Time `json:"barDateTimeMin" binding:"required"`
+	BarDateTimeMax       time.Time `json:"barDateTimeMax" binding:"required"`
+	Wave                 int       `json:"wave"`
+	PreviousWave         int       `json:"previousWave"`
+	NextWave             int       `json:"nextWave"`
+	Next2Wave            int       `json:"next2Wave"`
+	Direction4h200       int       `json:"direction4h200"`
+	Direction4h75        int       `json:"direction4h75"`
+	Direction4h20        int       `json:"direction4h20"`
+	Direction1h200       int       `json:"direction1h200"`
+	Direction15m200      int       `json:"direction15m200"`
+	Wave4h               int       `json:"wave4h"`
+	DirectionTarget4h200 int       `json:"directionTarget4h200"`
 }
 
 type ZigZagStatusRequest struct {

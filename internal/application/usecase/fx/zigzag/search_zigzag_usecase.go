@@ -62,7 +62,7 @@ func (uc *SearchZigZagUseCase) Execute(ctx context.Context, cmd fxcommand.ZigZag
 	list := uc.toItemList(rows, cmd)
 
 	if len(rows) != len(list) {
-		count = count - (len(rows) - len(list))
+		count -= (len(rows) - len(list))
 	}
 
 	return &SearchZigZagResult{
