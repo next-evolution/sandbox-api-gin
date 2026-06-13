@@ -10,17 +10,17 @@ import (
 	"sandbox-api-gin/internal/api/dto/response"
 	"sandbox-api-gin/internal/api/middleware"
 	"sandbox-api-gin/internal/application/command"
-	"sandbox-api-gin/internal/application/usecase"
+	userusecase "sandbox-api-gin/internal/application/usecase/user"
 	"sandbox-api-gin/internal/domain/apperror"
 	"sandbox-api-gin/internal/domain/model"
 )
 
 type AuthController struct {
-	loginUseCase  *usecase.LoginUseCase
-	logoutUseCase *usecase.LogoutUseCase
+	loginUseCase  *userusecase.LoginUseCase
+	logoutUseCase *userusecase.LogoutUseCase
 }
 
-func NewAuthController(loginUseCase *usecase.LoginUseCase, logoutUseCase *usecase.LogoutUseCase) *AuthController {
+func NewAuthController(loginUseCase *userusecase.LoginUseCase, logoutUseCase *userusecase.LogoutUseCase) *AuthController {
 	return &AuthController{
 		loginUseCase:  loginUseCase,
 		logoutUseCase: logoutUseCase,

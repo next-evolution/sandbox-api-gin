@@ -22,8 +22,8 @@ import (
 	"sandbox-api-gin/internal/api/controller"
 	"sandbox-api-gin/internal/api/middleware"
 	"sandbox-api-gin/internal/api/router"
-	"sandbox-api-gin/internal/application/usecase"
 	fxusecase "sandbox-api-gin/internal/application/usecase/fx"
+	userusecase "sandbox-api-gin/internal/application/usecase/user"
 	"sandbox-api-gin/internal/application/usecase/fx/bardata"
 	"sandbox-api-gin/internal/application/usecase/fx/country"
 	"sandbox-api-gin/internal/application/usecase/fx/economicindicator"
@@ -120,11 +120,11 @@ func run() error {
 	calculator := fxservice.NewFxTradeCalculator()
 
 	// ユースケース
-	loginUseCase := usecase.NewLoginUseCase(userRepo, sessionRepo)
-	logoutUseCase := usecase.NewLogoutUseCase(sessionRepo)
-	getProfileUseCase := usecase.NewGetProfileUseCase(userRepo)
-	registerUserUseCase := usecase.NewRegisterUserUseCase(userRepo)
-	updateUserUseCase := usecase.NewUpdateUserUseCase(userRepo)
+	loginUseCase := userusecase.NewLoginUseCase(userRepo, sessionRepo)
+	logoutUseCase := userusecase.NewLogoutUseCase(sessionRepo)
+	getProfileUseCase := userusecase.NewGetProfileUseCase(userRepo)
+	registerUserUseCase := userusecase.NewRegisterUserUseCase(userRepo)
+	updateUserUseCase := userusecase.NewUpdateUserUseCase(userRepo)
 	tradeSimulationUseCase := fxusecase.NewTradeSimulationUseCase(tradeSimulationRepo, calculator)
 	getMasterUseCase := fxusecase.NewGetMasterUseCase(symbolRepo, countryRepo, economicIndicatorRepo)
 	searchSymbolUseCase := symbol.NewSearchSymbolUseCase(symbolRepo)

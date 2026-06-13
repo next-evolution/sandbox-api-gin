@@ -14,7 +14,7 @@ import (
 	"time"
 	"unicode"
 
-	fxdto "sandbox-api-gin/internal/application/dto/fx"
+	"sandbox-api-gin/internal/application/dto"
 	fxmodel "sandbox-api-gin/internal/domain/model/fx"
 	fxrepository "sandbox-api-gin/internal/domain/repository/fx"
 )
@@ -51,7 +51,7 @@ type FileEntry struct {
 	FileSize int64
 }
 
-func (uc *ImportEconomicIndicatorDataUseCase) Execute(ctx context.Context, files []FileEntry, userSub string) ([]fxdto.FileImportResult, error) {
+func (uc *ImportEconomicIndicatorDataUseCase) Execute(ctx context.Context, files []FileEntry, userSub string) ([]dto.FileImportResult, error) {
 	countryMap, err := uc.buildCountryMap(ctx)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (uc *ImportEconomicIndicatorDataUseCase) Execute(ctx context.Context, files
 		return nil, err
 	}
 
-	results := make([]fxdto.FileImportResult, 0, len(files))
+	results := make([]dto.FileImportResult, 0, len(files))
 	for _, entry := range files {
 		result, err := uc.processFile(ctx, entry, countryMap, indicatorMap, userSub)
 		if err != nil {
@@ -78,37 +78,37 @@ func (uc *ImportEconomicIndicatorDataUseCase) processFile(
 	countryMap map[string]string,
 	indicatorMap map[string]map[string]fxmodel.EconomicIndicator,
 	userSub string,
-) (fxdto.FileImportResult, error) {
+) (dto.FileImportResult, error) {
 	savedPath, err := uc.saveFile(entry.FileName, entry.Reader, userSub)
 	if err != nil {
-		return fxdto.FileImportResult{}, fmt.Errorf("ファイル保存に失敗しました: %s: %w", entry.FileName, err)
+		return dto.FileImportResult{}, fmt.Errorf("ファイル保存に失敗しました: %s: %w", entry.FileName, err)
 	}
 
 	dataList, err := uc.parseFile(savedPath, entry.FileName, countryMap, indicatorMap)
 	if err != nil {
-		return fxdto.FileImportResult{}, err
+		return dto.FileImportResult{}, err
 	}
 
 	if err := uc.dataRepo.DeleteLoad(ctx); err != nil {
-		return fxdto.FileImportResult{}, err
+		return dto.FileImportResult{}, err
 	}
 
 	for _, data := range dataList {
 		if err := uc.dataRepo.InsertLoad(ctx, data); err != nil {
-			return fxdto.FileImportResult{}, err
+			return dto.FileImportResult{}, err
 		}
 	}
 
 	diffList, err := uc.dataRepo.LoadDiff(ctx)
 	if err != nil {
-		return fxdto.FileImportResult{}, err
+		return dto.FileImportResult{}, err
 	}
 
 	insertFromLoad := 0
 	diffCount := len(diffList)
 	if diffCount == 0 {
 		if err := uc.dataRepo.InsertFromLoad(ctx); err != nil {
-			return fxdto.FileImportResult{}, err
+			return dto.FileImportResult{}, err
 		}
 		insertFromLoad = len(dataList)
 	} else {
@@ -125,7 +125,7 @@ func (uc *ImportEconomicIndicatorDataUseCase) processFile(
 		"diffCount", diffCount,
 	)
 
-	return fxdto.FileImportResult{
+	return dto.FileImportResult{
 		FileName:     entry.FileName,
 		FileSize:     entry.FileSize,
 		ReadCount:    len(dataList),

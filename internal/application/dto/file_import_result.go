@@ -1,4 +1,4 @@
-package fxdto
+package dto
 
 type FileImportResult struct {
 	FileName     string `json:"fileName"`
