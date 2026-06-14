@@ -27,6 +27,14 @@ type UserResponse struct {
 	User *dto.UserDto `json:"user"`
 }
 
+type UserSearchResponse struct {
+	ApiResponse
+	TotalCount  int            `json:"totalCount"`
+	SearchCount int            `json:"searchCount"`
+	TotalPage   int            `json:"totalPage"`
+	List        []*dto.UserDto `json:"list"`
+}
+
 type ErrorResponse struct {
 	Status  int    `json:"status"`
 	Error   string `json:"error"`

@@ -360,3 +360,10 @@ Goのパッケージ名は短い識別子。ディレクトリ名と一致させ
 internal/infrastructure/infraredis/  → package infraredis  （"redis"だとgo-redisと競合）
 internal/infrastructure/infradb/     → package infradb
 ```
+
+同一ファイル内で `admin` パッケージが複数登場する場合はエイリアスで区別する。
+
+```go
+admincommand "sandbox-api-gin/internal/application/command/admin"
+adminrequest  "sandbox-api-gin/internal/api/dto/request/admin"
+```

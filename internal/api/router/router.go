@@ -21,6 +21,8 @@ func Setup(
 	economicIndicatorController *controller.EconomicIndicatorController,
 	economicIndicatorDataController *controller.EconomicIndicatorDataController,
 	zigZagController *controller.ZigZagController,
+	adminMasterRefreshController *controller.AdminMasterRefreshController,
+	adminUsersController *controller.AdminUsersController,
 ) {
 	api := engine.Group("/api")
 
@@ -110,6 +112,23 @@ func Setup(
 				economicIndicatorData.GET("/:economicIndicatorId/:publication", economicIndicatorDataController.Get)
 				economicIndicatorData.PUT("/:economicIndicatorId/:publication", economicIndicatorDataController.Update)
 				economicIndicatorData.POST("/import-text", economicIndicatorDataController.ImportText)
+			}
+		}
+
+		admin := v1.Group("/admin")
+		{
+			masterRefresh := admin.Group("/master-refresh")
+			{
+				masterRefresh.GET("", adminMasterRefreshController.Status)
+				masterRefresh.PUT("", adminMasterRefreshController.Refresh)
+			}
+
+			adminUsers := admin.Group("/users")
+			{
+				adminUsers.POST("", adminUsersController.Search)
+				adminUsers.PUT("/approved/:userId", adminUsersController.Approved)
+				adminUsers.PUT("/block/:userId", adminUsersController.Block)
+				adminUsers.PUT("/admin/:userId", adminUsersController.GrantAdmin)
 			}
 		}
 	}

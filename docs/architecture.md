@@ -17,6 +17,7 @@ internal/
       fx/                          # FXドメインサービス（FxTradeCalculator）
   application/
     command/                       # コマンドオブジェクト（入力値の集約）
+      admin/                       # 管理者コマンド（ApproveUserCommand, BlockUserCommand, GrantAdminCommand, SearchUsersCommand）
       fx/                          # FXコマンド（TradeSimulationCommand）
     dto/                           # データ転送オブジェクト（UserDto, FileImportResult）
       fx/                          # FX DTO（SymbolDto）
@@ -47,13 +48,29 @@ internal/
     router/                        # ルーティング設定
 ```
 
+### パッケージ命名規約（Admin機能）
+
+管理者操作の command はアクター視点で `command/admin/` に分離する。usecase はドメイン視点で `usecase/user/` に統合する。
+
+| ディレクトリ | パッケージ名 | importエイリアス |
+|---|---|---|
+| `internal/application/command/admin/` | `admin` | `admincommand` |
+| `internal/api/dto/request/admin/` | `admin` | `adminrequest` |
+| `internal/application/usecase/user/` | `user` | `userusecase`（Userと共通） |
+
+```go
+admincommand "sandbox-api-gin/internal/application/command/admin"
+adminrequest  "sandbox-api-gin/internal/api/dto/request/admin"
+userusecase   "sandbox-api-gin/internal/application/usecase/user"
+```
+
 ### パッケージ命名規約（User機能）
 
 ファイル名に `login` / `logout` / `user` を含むものは `user` パッケージに配置する。
 
 | ディレクトリ | パッケージ名 |
 |---|---|
-| `internal/application/usecase/user/` | `user`（LoginUseCase, LogoutUseCase, GetProfileUseCase, RegisterUserUseCase, UpdateUserUseCase） |
+| `internal/application/usecase/user/` | `user`（LoginUseCase, LogoutUseCase, GetProfileUseCase, RegisterUserUseCase, UpdateUserUseCase, ApproveUserUseCase, BlockUserUseCase, GrantAdminUseCase, SearchUsersUseCase） |
 
 インポート時は `userusecase` エイリアスを使用する（FX機能の `fxusecase` と対称）。
 

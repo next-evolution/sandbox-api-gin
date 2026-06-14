@@ -108,6 +108,7 @@ func run() error {
 
 	// リポジトリ
 	sessionRepo := infraredis.NewRedisSessionRepository(redisClient, cfg.SessionTTL)
+	masterCacheRepo := infraredis.NewRedisMasterCacheRepository(redisClient)
 	userRepo := infradb.NewMySQLUserRepository(db)
 
 	// FXリポジトリ・サービス
@@ -168,6 +169,14 @@ func run() error {
 	generateZigZagUseCase := zigzagusecase.NewGenerateZigZagUseCase(zigZagRepo, zigZagDomainService)
 	getZigZagBarDataUseCase := zigzagusecase.NewGetZigZagBarDataUseCase(zigZagRepo)
 
+	// Admin
+	masterStatusUseCase := fxusecase.NewMasterStatusUseCase(masterCacheRepo)
+	masterRefreshUseCase := fxusecase.NewMasterRefreshUseCase(countryRepo, symbolRepo, economicIndicatorRepo, masterCacheRepo)
+	searchUsersUseCase := userusecase.NewSearchUsersUseCase(userRepo)
+	approveUserUseCase := userusecase.NewApproveUserUseCase(userRepo)
+	blockUserUseCase := userusecase.NewBlockUserUseCase(userRepo)
+	grantAdminUseCase := userusecase.NewGrantAdminUseCase(userRepo)
+
 	// コントローラ
 	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
 	userController := controller.NewUserController(getProfileUseCase, registerUserUseCase, updateUserUseCase)
@@ -189,6 +198,8 @@ func run() error {
 	zigZagController := controller.NewZigZagController(
 		searchZigZagUseCase, getZigZagStatusUseCase, generateZigZagUseCase, getZigZagBarDataUseCase,
 	)
+	adminMasterRefreshController := controller.NewAdminMasterRefreshController(masterStatusUseCase, masterRefreshUseCase)
+	adminUsersController := controller.NewAdminUsersController(searchUsersUseCase, approveUserUseCase, blockUserUseCase, grantAdminUseCase)
 
 	// ミドルウェア
 	jwtMw := middleware.JwtMiddleware(jwtProvider, sessionRepo)
@@ -217,6 +228,7 @@ func run() error {
 		countryController, summerTimeController, barDataController,
 		economicIndicatorController, economicIndicatorDataController,
 		zigZagController,
+		adminMasterRefreshController, adminUsersController,
 	)
 
 	// Graceful Shutdown
