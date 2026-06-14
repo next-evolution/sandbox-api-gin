@@ -1,6 +1,10 @@
 package fx
 
-import "sandbox-api-gin/internal/domain/apperror"
+import (
+	"time"
+
+	"sandbox-api-gin/internal/domain/apperror"
+)
 
 type BarType string
 
@@ -24,6 +28,33 @@ func (b BarType) Suffix() string {
 	default:
 		return ""
 	}
+}
+
+func (b BarType) Keyword() string {
+	switch b {
+	case BarTypeM15:
+		return "15"
+	case BarTypeH1:
+		return "60"
+	case BarTypeH4:
+		return "240"
+	case BarTypeD1:
+		return "1D"
+	default:
+		return ""
+	}
+}
+
+func (b BarType) TableName() string {
+	return "fx_bar_" + b.Suffix()
+}
+
+func (b BarType) ParseBarDateTime(s string) (time.Time, error) {
+	src := s
+	if b == BarTypeD1 {
+		src = s + "T00:00:00+09:00"
+	}
+	return time.Parse(time.RFC3339, src)
 }
 
 func BarTypeOf(code string) (BarType, error) {

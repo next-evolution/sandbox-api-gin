@@ -362,6 +362,7 @@ ApiResponse ラッパーなし。`KeyValue` の配列を直接返す。
 |---|---|---|
 | POST | /v1/fx/bar-data | バーデータ検索（ページネーション） |
 | GET | /v1/fx/bar-data/:symbolType/:barType | バーデータ件数ステータス |
+| POST | /v1/fx/bar-data/import-csv/:symbol/:barType/:skipLatest | バーデータCSVインポート |
 
 #### POST /v1/fx/bar-data
 
@@ -400,6 +401,40 @@ ApiResponse ラッパーなし。`KeyValue` の配列を直接返す。
   {"symbol":"EURUSD","barDateTime":null,"existsCount":0,"message":null}
 ]
 ```
+
+#### POST /v1/fx/bar-data/import-csv/:symbol/:barType/:skipLatest
+
+multipart/form-data でCSVファイルをアップロードし、バーデータをインポートする。
+
+- `:symbol`: シンボル（例: `"USDJPY"`）
+- `:barType`: `"15M"`, `"1H"`, `"4H"`, `"1D"` のいずれか
+- `:skipLatest`: `"true"` で最新1件をスキップ（未確定足を除外する場合）
+- フォームフィールド `uploadFile`: CSVファイル
+
+CSVファイル名に `{symbol}_{keyword}`（例: `USDJPY_240`）が含まれていない場合はエラー。
+
+| barType | keyword |
+|---|---|
+| 15M | 15 |
+| 1H | 60 |
+| 4H | 240 |
+| 1D | 1D |
+
+レスポンス（ApiResponseラッパーなし）:
+```json
+{
+  "symbol": "USDJPY",
+  "barDateTime": "2026-03-01 00:00:00",
+  "fileName": "USDJPY_240_20260301.csv",
+  "fileSize": 102400,
+  "resultStatus": "OK",
+  "readCount": 1000,
+  "existsCount": 950,
+  "insertCount": 50,
+  "differenceCount": 0
+}
+```
+- `resultStatus`: `"OK"`（新規挿入あり）/ `"SKIP"`（全件既存）/ `"ERROR"`（ファイル名不正・整合性チェックNG）
 
 ---
 

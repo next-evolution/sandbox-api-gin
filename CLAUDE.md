@@ -81,6 +81,11 @@ docker compose --env-file .env.compose up -d
 | SERVER_PORT | 8080 | サーバーポート デフォルト8080 |
 | GIN_MODE | debug | Ginモード（debug / release / test） |
 | FX_RATE_URL | https://api.gaitame.com | GaitameレートAPIのベースURL（未設定時はGaitameフォールバック無効） |
+| STORAGE_BUCKET | /tmp/sandbox | ファイル保存先のベースディレクトリ |
+| STORAGE_FX | fx | FX関連ファイルのサブディレクトリ名 |
+| INDICATOR_EXCLUDE_LIST | item1,item2 | 経済指標除外リスト（カンマ区切り、任意） |
+| CSV_BULK_LOAD_SIZE | 500 | CSVバルクインサートのバッチサイズ デフォルト500 |
+| IMPORT_CHECK_SKIP | false | importCheck（既存レコード0件エラー）をスキップするか デフォルトfalse |
 
 ### 環境設定ファイル
 

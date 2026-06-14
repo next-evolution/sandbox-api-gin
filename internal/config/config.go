@@ -30,6 +30,9 @@ type Config struct {
 	StorageBucket        string
 	StorageFX            string
 	IndicatorExcludeList []string
+
+	CsvBulkLoadSize int
+	ImportCheckSkip bool
 }
 
 func Load() *Config {
@@ -37,6 +40,13 @@ func Load() *Config {
 	if v := os.Getenv("SESSION_TTL"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			sessionTTL = n
+		}
+	}
+
+	csvBulkLoadSize := 500
+	if v := os.Getenv("CSV_BULK_LOAD_SIZE"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			csvBulkLoadSize = n
 		}
 	}
 
@@ -58,6 +68,8 @@ func Load() *Config {
 		StorageBucket:        getEnv("STORAGE_BUCKET", "/tmp/sandbox"),
 		StorageFX:            getEnv("STORAGE_FX", "fx"),
 		IndicatorExcludeList: splitEnv("INDICATOR_EXCLUDE_LIST"),
+		CsvBulkLoadSize:      csvBulkLoadSize,
+		ImportCheckSkip:      os.Getenv("IMPORT_CHECK_SKIP") == "true",
 	}
 }
 

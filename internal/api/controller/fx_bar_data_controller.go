@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,22 +10,25 @@ import (
 	"sandbox-api-gin/internal/api/dto/response"
 	fxresponse "sandbox-api-gin/internal/api/dto/response/fx"
 	fxcommand "sandbox-api-gin/internal/application/command/fx"
-	bardata "sandbox-api-gin/internal/application/usecase/fx/bardata"
+	"sandbox-api-gin/internal/application/usecase/fx/bardata"
 	fxmodel "sandbox-api-gin/internal/domain/model/fx"
 )
 
 type BarDataController struct {
-	searchUseCase *bardata.SearchBarDataUseCase
-	statusUseCase *bardata.StatusBarDataUseCase
+	searchUseCase    *bardata.SearchBarDataUseCase
+	statusUseCase    *bardata.StatusBarDataUseCase
+	importCsvUseCase *bardata.ImportCsvBarDataUseCase
 }
 
 func NewBarDataController(
 	searchUseCase *bardata.SearchBarDataUseCase,
 	statusUseCase *bardata.StatusBarDataUseCase,
+	importCsvUseCase *bardata.ImportCsvBarDataUseCase,
 ) *BarDataController {
 	return &BarDataController{
-		searchUseCase: searchUseCase,
-		statusUseCase: statusUseCase,
+		searchUseCase:    searchUseCase,
+		statusUseCase:    statusUseCase,
+		importCsvUseCase: importCsvUseCase,
 	}
 }
 
@@ -104,6 +108,68 @@ func (ctrl *BarDataController) Status(c *gin.Context) {
 	result, err := ctrl.statusUseCase.Execute(ctx, fxcommand.StatusBarDataCommand{
 		SymbolType: symbolType,
 		BarType:    barType,
+	})
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// ImportCsv POST /v1/fx/bar-data/import-csv/:symbol/:barType/:skipLatest
+func (ctrl *BarDataController) ImportCsv(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	symbol := c.Param("symbol")
+	barTypeStr := c.Param("barType")
+	skipLatestStr := c.Param("skipLatest")
+
+	barType, err := fxmodel.BarTypeOf(barTypeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   "BAD_REQUEST",
+			Message: "barTypeは'15M','1H','4H','1D'のいずれかを指定してください",
+		})
+		return
+	}
+
+	file, err := c.FormFile("uploadFile")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   "BAD_REQUEST",
+			Message: "uploadFileが見つかりません",
+		})
+		return
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Error:   "INTERNAL_SERVER_ERROR",
+			Message: "ファイルオープンエラー",
+		})
+		return
+	}
+	defer func() {
+		if err := src.Close(); err != nil {
+			slog.Error("アップロードファイルクローズエラー", "error", err)
+		}
+	}()
+
+	authUser := getAuthUser(c)
+
+	result, err := ctrl.importCsvUseCase.Execute(ctx, fxcommand.ImportCsvBarDataCommand{
+		Symbol:           symbol,
+		BarType:          barType,
+		SkipLatest:       skipLatestStr == "true",
+		FileReader:       src,
+		OriginalFileName: file.Filename,
+		FileSize:         file.Size,
+		UserSub:          authUser.Sub,
 	})
 	if err != nil {
 		handleError(c, err)
