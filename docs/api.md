@@ -618,3 +618,62 @@ warn=true の場合 returnCode=1（Warn）、message にエラー理由を返す
 #### POST /v1/fx/zigzag/bar-data
 
 リクエスト: `barType`、`symbol`、`depth`、`waveStart`、`wave`
+
+---
+
+## Admin 管理 API
+
+全エンドポイントは JWT + Auth ミドルウェア必須。`authUser.Admin == true` でなければ 403。
+
+### マスターキャッシュ
+
+#### GET /v1/admin/master-refresh
+
+Redisの `master*` キーの件数ステータスを返す。
+
+レスポンス: `ApiResponse`（returnCode=0、message=ステータス文字列）
+
+#### PUT /v1/admin/master-refresh
+
+国・シンボル・経済指標のキャッシュをリフレッシュし、`price*` キーを削除してステータスを返す。
+
+レスポンス: `ApiResponse`（returnCode=0、message=更新後ステータス文字列）
+
+### ユーザー管理
+
+#### POST /v1/admin/users
+
+リクエスト:
+
+| フィールド | 型 | 必須 | 説明 |
+|---|---|---|---|
+| `page` | int | ○ | ページ（≥1） |
+| `size` | int | ○ | ページサイズ（≥1） |
+| `emailAddress` | string | - | メールアドレス部分一致 |
+| `approved` | bool | - | 承認フラグフィルタ |
+
+レスポンス: `UserSearchResponse`（returnCode/totalCount/searchCount/totalPage/list）
+
+#### PUT /v1/admin/users/approved/:userId
+
+パスパラメータ `:userId` は Base64 エンコード済みの userId。承認フラグを `true` にセット。
+
+承認済みの場合は 400（DuplicateError）。
+
+レスポンス: `UserResponse`（returnCode=0、user）
+
+#### PUT /v1/admin/users/block/:userId
+
+リクエスト: `blocked`（bool、必須）
+
+Block状態が変わらない場合は 400（DuplicateError）。
+
+レスポンス: `UserResponse`（returnCode=0、user）
+
+#### PUT /v1/admin/users/admin/:userId
+
+リクエスト: `admin`（bool、必須）
+
+管理者権限が変わらない場合は 400（DuplicateError）。
+
+レスポンス: `UserResponse`（returnCode=0、user）

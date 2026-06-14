@@ -3,6 +3,7 @@ package infradb
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -127,6 +128,106 @@ func (r *MySQLUserRepository) UpdateNickName(ctx context.Context, user *model.Us
 	}
 	if rows != 1 {
 		return apperror.NewUpdateError("ユーザ情報更新")
+	}
+	return nil
+}
+
+func (r *MySQLUserRepository) SearchCount(ctx context.Context, emailAddress string, approved *bool) (int, error) {
+	where, args := buildUserSearchWhere(emailAddress, approved)
+	query := `SELECT COUNT(*) FROM sandbox_user WHERE deleted = 0` + where
+	var count int
+	if err := r.db.GetContext(ctx, &count, query, args...); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *MySQLUserRepository) Search(ctx context.Context, emailAddress string, approved *bool, page, size int) ([]*model.User, error) {
+	where, args := buildUserSearchWhere(emailAddress, approved)
+	query := `
+		SELECT id, user_id, email_address, nick_name,
+		       (approved+0) AS approved, approved_at,
+		       (admin+0) AS admin, (blocked+0) AS blocked, (deleted+0) AS deleted,
+		       created_at, created_by, updated_at, updated_by
+		FROM sandbox_user
+		WHERE deleted = 0` + where + `
+		ORDER BY id
+		LIMIT ? OFFSET ?`
+	args = append(args, size, (page-1)*size)
+
+	var recs []sandboxUserRecord
+	if err := r.db.SelectContext(ctx, &recs, query, args...); err != nil {
+		return nil, err
+	}
+	users := make([]*model.User, len(recs))
+	for i := range recs {
+		users[i] = toDomain(&recs[i])
+	}
+	return users, nil
+}
+
+func buildUserSearchWhere(emailAddress string, approved *bool) (string, []any) {
+	var sb strings.Builder
+	var args []any
+	if emailAddress != "" {
+		sb.WriteString(" AND email_address LIKE ?")
+		args = append(args, "%"+emailAddress+"%")
+	}
+	if approved != nil {
+		sb.WriteString(" AND (approved+0) = ?")
+		if *approved {
+			args = append(args, 1)
+		} else {
+			args = append(args, 0)
+		}
+	}
+	return sb.String(), args
+}
+
+func (r *MySQLUserRepository) UpdateApproved(ctx context.Context, user *model.User) error {
+	query := `UPDATE sandbox_user SET approved = ?, approved_at = ?, updated_at = ?, updated_by = ? WHERE id = ?`
+	result, err := r.db.ExecContext(ctx, query, user.Approved, user.ApprovedAt, user.UpdatedAt, user.UpdatedBy, user.ID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return apperror.NewUpdateError("ユーザ承認")
+	}
+	return nil
+}
+
+func (r *MySQLUserRepository) UpdateBlocked(ctx context.Context, user *model.User) error {
+	query := `UPDATE sandbox_user SET blocked = ?, updated_at = ?, updated_by = ? WHERE id = ?`
+	result, err := r.db.ExecContext(ctx, query, user.Blocked, user.UpdatedAt, user.UpdatedBy, user.ID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return apperror.NewUpdateError("Block設定")
+	}
+	return nil
+}
+
+func (r *MySQLUserRepository) UpdateAdmin(ctx context.Context, user *model.User) error {
+	query := `UPDATE sandbox_user SET admin = ?, updated_at = ?, updated_by = ? WHERE id = ?`
+	result, err := r.db.ExecContext(ctx, query, user.Admin, user.UpdatedAt, user.UpdatedBy, user.ID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return apperror.NewUpdateError("管理者権限設定")
 	}
 	return nil
 }

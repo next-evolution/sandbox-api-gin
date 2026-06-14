@@ -11,13 +11,13 @@ Java SpringBoot（`docs/ref_src`）と Go Gin の実装差異。
 | POST | `/v1/fx/zigzag/generate` |
 | POST | `/v1/fx/zigzag/bar-data` |
 
-## BarData CSV インポート（1エンドポイント）
+## BarData CSV インポート（1エンドポイント） ✅ 実装済み
 
 | メソッド | パス |
 |---|---|
 | POST | `/v1/fx/bar-data/import-csv/{symbol}/{barType}/{skipLatest}` |
 
-## Admin 管理（6エンドポイント）
+## Admin 管理（6エンドポイント） ✅ 実装済み
 
 | メソッド | パス |
 |---|---|
