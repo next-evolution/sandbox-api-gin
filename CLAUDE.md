@@ -2,7 +2,7 @@
 
 Java SpringBoot で構築された RestAPI をベースに Go Gin の RestAPI を構築。
 
-* ベースとなるソース: `./docs/base_src`（**読み取りのみ・書き込み禁止**）
+* ベースとなるソース: `./docs/ref_src`（**読み取りのみ・書き込み禁止**）
 
 ---
 
@@ -59,8 +59,8 @@ go mod tidy
 # または
 make tidy
 
-# docker compose .env.compose を編集して実際の値を設定
-docker compose --env-file .env.compose up -d
+# MySQL + Redis 起動（../sandbox-tools/docker で実行）
+cd ../sandbox-tools/docker && docker compose --env-file .env.compose up -d
 ```
 
 ### 必要な環境変数
@@ -100,8 +100,8 @@ docker compose --env-file .env.compose up -d
 ### ローカルインフラ起動
 
 ```bash
-# MySQL + Redis を Docker で起動（./docs/base_srcのdocker-compose.ymlを使用）
-cd docs/base_src && docker compose up -d
+# MySQL + Redis を Docker で起動（../sandbox-tools の Docker Compose を使用）
+cd ../sandbox-tools/docker && docker compose --env-file .env.compose up -d
 ```
 
 ---

@@ -60,9 +60,13 @@ security → domain
 
 ### 1. ローカルインフラ起動
 
+MySQL・Redis は `sandbox-tools` リポジトリで管理。
+
 ```bash
-# MySQL（43306）+ Redis（46379）を Docker で起動
-cd docs/base_src && docker compose up -d
+# sandbox-tools/docker/ で実行
+cd ../sandbox-tools/docker
+cp .env.compose.example .env.compose  # 初回のみ・値を実際の環境に合わせて編集
+docker compose --env-file .env.compose up -d
 ```
 
 ### 2. アプリケーション環境変数
