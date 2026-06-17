@@ -30,6 +30,7 @@ func (uc *AddEconomicIndicatorUseCase) Execute(ctx context.Context, dto fxdto.Ec
 
 	now := time.Now()
 	indicator := fxmodel.EconomicIndicator{
+		Code:        dto.Code,
 		CountryCode: dto.CountryCode,
 		Name:        dto.Name,
 		Importance:  dto.Importance,

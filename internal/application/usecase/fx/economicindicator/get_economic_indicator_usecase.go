@@ -17,13 +17,13 @@ func NewGetEconomicIndicatorUseCase(repo fxrepository.EconomicIndicatorRepositor
 	return &GetEconomicIndicatorUseCase{repo: repo}
 }
 
-func (uc *GetEconomicIndicatorUseCase) Execute(ctx context.Context, countryCode string, id int64) (fxdto.EconomicIndicatorDto, error) {
-	indicator, err := uc.repo.Get(ctx, id)
+func (uc *GetEconomicIndicatorUseCase) Execute(ctx context.Context, countryCode, code string) (fxdto.EconomicIndicatorDto, error) {
+	indicator, err := uc.repo.Get(ctx, countryCode, code)
 	if err != nil {
 		return fxdto.EconomicIndicatorDto{}, err
 	}
-	if indicator == nil || indicator.CountryCode != countryCode {
-		return fxdto.EconomicIndicatorDto{}, apperror.NewNotFoundError(fmt.Sprintf("(%s) %d", countryCode, id))
+	if indicator == nil {
+		return fxdto.EconomicIndicatorDto{}, apperror.NewNotFoundError(fmt.Sprintf("(%s) %s", countryCode, code))
 	}
 	return fxdto.EconomicIndicatorDtoFromDomain(*indicator), nil
 }

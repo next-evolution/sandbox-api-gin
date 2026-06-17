@@ -9,7 +9,7 @@ type EconomicIndicatorDataRequest struct {
 type EconomicIndicatorDataSearchRequest struct {
 	Page                int    `json:"page" binding:"required,min=1"`
 	Size                int    `json:"size" binding:"required,min=1"`
-	ID                  int64  `json:"id"`
+	Code                string `json:"code"`
 	Importance          string `json:"importance"`
 	CountryCode         string `json:"countryCode"`
 	PublicationBaseDate string `json:"publicationBaseDate"`

@@ -3,7 +3,7 @@ package fx
 import "time"
 
 type EconomicIndicatorData struct {
-	ID               int64
+	Code             string
 	CountryCode      string
 	Name             string
 	Importance       string

@@ -101,16 +101,16 @@ func Setup(
 			{
 				economicIndicator.POST("/search", economicIndicatorController.Search)
 				economicIndicator.POST("", economicIndicatorController.Add)
-				economicIndicator.GET("/:countryCode/:id", economicIndicatorController.Get)
-				economicIndicator.PUT("/:countryCode/:id", economicIndicatorController.Update)
+				economicIndicator.GET("/:countryCode/:code", economicIndicatorController.Get)
+				economicIndicator.PUT("/:countryCode/:code", economicIndicatorController.Update)
 			}
 
 			economicIndicatorData := fx.Group("/economic-indicator-data")
 			{
 				economicIndicatorData.POST("/search", economicIndicatorDataController.Search)
 				economicIndicatorData.POST("", economicIndicatorDataController.Add)
-				economicIndicatorData.GET("/:economicIndicatorId/:publication", economicIndicatorDataController.Get)
-				economicIndicatorData.PUT("/:economicIndicatorId/:publication", economicIndicatorDataController.Update)
+				economicIndicatorData.GET("/:countryCode/:code/:publication", economicIndicatorDataController.Get)
+				economicIndicatorData.PUT("/:countryCode/:code/:publication", economicIndicatorDataController.Update)
 				economicIndicatorData.POST("/import-text", economicIndicatorDataController.ImportText)
 			}
 		}

@@ -6,7 +6,7 @@ import (
 )
 
 type EconomicIndicatorDataDto struct {
-	ID               int64        `json:"id"`
+	Code             string       `json:"code"`
 	CountryCode      string       `json:"countryCode"`
 	Name             string       `json:"name"`
 	Importance       string       `json:"importance"`
@@ -27,7 +27,7 @@ type EconomicIndicatorDataDto struct {
 
 func EconomicIndicatorDataDtoFromDomain(m fxmodel.EconomicIndicatorData) EconomicIndicatorDataDto {
 	return EconomicIndicatorDataDto{
-		ID:               m.ID,
+		Code:             m.Code,
 		CountryCode:      m.CountryCode,
 		Name:             m.Name,
 		Importance:       m.Importance,

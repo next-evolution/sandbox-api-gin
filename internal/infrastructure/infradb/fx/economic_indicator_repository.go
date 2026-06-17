@@ -22,7 +22,7 @@ func NewMySQLEconomicIndicatorRepository(db *sqlx.DB) fxrepository.EconomicIndic
 }
 
 type fxEconomicIndicatorRecord struct {
-	ID               int64     `db:"id"`
+	Code             string    `db:"code"`
 	CountryCode      string    `db:"countryCode"`
 	Name             string    `db:"name"`
 	Importance       string    `db:"importance"`
@@ -44,13 +44,13 @@ func (r *MySQLEconomicIndicatorRepository) GetList(ctx context.Context, countryC
 	)
 	if countryCode == "ALL" {
 		query = `
-			SELECT CAST(id AS CHAR) AS ` + "`key`" + `, name AS ` + "`value`" + `
+			SELECT code AS ` + "`key`" + `, name AS ` + "`value`" + `
 			FROM fx_economic_indicator
 			WHERE (deleted+0) = 0
 			ORDER BY name`
 	} else {
 		query = `
-			SELECT CAST(id AS CHAR) AS ` + "`key`" + `, name AS ` + "`value`" + `
+			SELECT code AS ` + "`key`" + `, name AS ` + "`value`" + `
 			FROM fx_economic_indicator
 			WHERE (deleted+0) = 0 AND country_code = ?
 			ORDER BY name`
@@ -64,7 +64,7 @@ func (r *MySQLEconomicIndicatorRepository) GetList(ctx context.Context, countryC
 }
 
 func (r *MySQLEconomicIndicatorRepository) Count(ctx context.Context, countryCode, importance, name string) (int, error) {
-	query := `SELECT COUNT(id) FROM fx_economic_indicator WHERE (deleted+0) = 0`
+	query := `SELECT COUNT(code) FROM fx_economic_indicator WHERE (deleted+0) = 0`
 	args := make([]interface{}, 0)
 	if importance != "" {
 		query += ` AND importance = ?`
@@ -86,7 +86,7 @@ func (r *MySQLEconomicIndicatorRepository) Count(ctx context.Context, countryCod
 func (r *MySQLEconomicIndicatorRepository) Search(ctx context.Context, page, size int, countryCode, importance, name string) ([]fxmodel.EconomicIndicator, error) {
 	query := `
 		SELECT
-			t.id              AS id,
+			t.code            AS code,
 			t.country_code    AS countryCode,
 			t.name            AS name,
 			t.importance      AS importance,
@@ -110,7 +110,7 @@ func (r *MySQLEconomicIndicatorRepository) Search(ctx context.Context, page, siz
 		query += ` AND t.name LIKE ?`
 		args = append(args, "%"+name+"%")
 	}
-	query += ` ORDER BY c.sort_order, t.id LIMIT ? OFFSET ?`
+	query += ` ORDER BY c.sort_order, t.code LIMIT ? OFFSET ?`
 	args = append(args, size, (page-1)*size)
 
 	var recs []fxEconomicIndicatorRecord
@@ -124,10 +124,10 @@ func (r *MySQLEconomicIndicatorRepository) Search(ctx context.Context, page, siz
 	return result, nil
 }
 
-func (r *MySQLEconomicIndicatorRepository) Get(ctx context.Context, id int64) (*fxmodel.EconomicIndicator, error) {
+func (r *MySQLEconomicIndicatorRepository) Get(ctx context.Context, countryCode, code string) (*fxmodel.EconomicIndicator, error) {
 	query := `
 		SELECT
-			t.id              AS id,
+			t.code            AS code,
 			t.country_code    AS countryCode,
 			t.name            AS name,
 			t.importance      AS importance,
@@ -142,9 +142,9 @@ func (r *MySQLEconomicIndicatorRepository) Get(ctx context.Context, id int64) (*
 			c.name_short      AS countryNameShort
 		FROM fx_economic_indicator t
 		INNER JOIN fx_country c ON c.code = t.country_code
-		WHERE t.id = ?`
+		WHERE t.country_code = ? AND t.code = ?`
 	var rec fxEconomicIndicatorRecord
-	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
+	if err := r.db.GetContext(ctx, &rec, query, countryCode, code); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -164,11 +164,11 @@ func (r *MySQLEconomicIndicatorRepository) Exists(ctx context.Context, countryCo
 func (r *MySQLEconomicIndicatorRepository) Add(ctx context.Context, indicator fxmodel.EconomicIndicator) error {
 	query := `
 		INSERT INTO fx_economic_indicator (
-			country_code, name, importance, description, unit_of_value,
+			code, country_code, name, importance, description, unit_of_value,
 			deleted, created_at, created_by, updated_at, updated_by
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	result, err := r.db.ExecContext(ctx, query,
-		indicator.CountryCode, indicator.Name, indicator.Importance,
+		indicator.Code, indicator.CountryCode, indicator.Name, indicator.Importance,
 		indicator.Description, indicator.UnitOfValue, indicator.Deleted,
 		indicator.CreatedAt, indicator.CreatedBy, indicator.UpdatedAt, indicator.UpdatedBy,
 	)
@@ -195,12 +195,12 @@ func (r *MySQLEconomicIndicatorRepository) Update(ctx context.Context, indicator
 			unit_of_value = ?,
 			updated_at    = ?,
 			updated_by    = ?
-		WHERE id = ? AND country_code = ?`
+		WHERE code = ? AND country_code = ?`
 	result, err := r.db.ExecContext(ctx, query,
 		indicator.Name, indicator.Importance, indicator.CountryCode,
 		indicator.Description, indicator.UnitOfValue,
 		indicator.UpdatedAt, indicator.UpdatedBy,
-		indicator.ID, countryCode,
+		indicator.Code, countryCode,
 	)
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (r *MySQLEconomicIndicatorRepository) Update(ctx context.Context, indicator
 func (r *MySQLEconomicIndicatorRepository) GetEconomicIndicatorList(ctx context.Context, countryCode string) ([]fxmodel.EconomicIndicator, error) {
 	query := `
 		SELECT
-			t.id            AS id,
+			t.code          AS code,
 			t.country_code  AS countryCode,
 			t.name          AS name,
 			t.importance    AS importance,
@@ -247,7 +247,7 @@ func (r *MySQLEconomicIndicatorRepository) RefreshCache(_ context.Context, _ str
 
 func toEconomicIndicatorDomain(rec fxEconomicIndicatorRecord) fxmodel.EconomicIndicator {
 	return fxmodel.EconomicIndicator{
-		ID:               rec.ID,
+		Code:             rec.Code,
 		CountryCode:      rec.CountryCode,
 		Name:             rec.Name,
 		Importance:       rec.Importance,

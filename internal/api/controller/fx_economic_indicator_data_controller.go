@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -51,7 +50,7 @@ func (ctrl *EconomicIndicatorDataController) Search(c *gin.Context) {
 		return
 	}
 
-	result, err := ctrl.searchUseCase.Execute(ctx, req.ID, req.Importance, req.CountryCode, req.PublicationBaseDate, req.Page, req.Size, req.SortAsc)
+	result, err := ctrl.searchUseCase.Execute(ctx, req.Code, req.Importance, req.CountryCode, req.PublicationBaseDate, req.Page, req.Size, req.SortAsc)
 	if err != nil {
 		handleError(c, err)
 		return
@@ -66,16 +65,16 @@ func (ctrl *EconomicIndicatorDataController) Search(c *gin.Context) {
 	})
 }
 
-// Get GET /v1/fx/economic-indicator-data/:economicIndicatorId/:publication
+// Get GET /v1/fx/economic-indicator-data/:countryCode/:code/:publication
 func (ctrl *EconomicIndicatorDataController) Get(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, publication, ok := parseIDAndPublication(c)
+	countryCode, code, publication, ok := parseCodeAndPublication(c)
 	if !ok {
 		return
 	}
 
-	dto, err := ctrl.getUseCase.Execute(ctx, id, publication)
+	dto, err := ctrl.getUseCase.Execute(ctx, code, countryCode, publication)
 	if err != nil {
 		handleError(c, err)
 		return
@@ -106,11 +105,11 @@ func (ctrl *EconomicIndicatorDataController) Add(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// Update PUT /v1/fx/economic-indicator-data/:economicIndicatorId/:publication
+// Update PUT /v1/fx/economic-indicator-data/:countryCode/:code/:publication
 func (ctrl *EconomicIndicatorDataController) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	id, publication, ok := parseIDAndPublication(c)
+	countryCode, code, publication, ok := parseCodeAndPublication(c)
 	if !ok {
 		return
 	}
@@ -125,7 +124,7 @@ func (ctrl *EconomicIndicatorDataController) Update(c *gin.Context) {
 		return
 	}
 
-	if err := ctrl.updateUseCase.Execute(ctx, id, publication, req.Data); err != nil {
+	if err := ctrl.updateUseCase.Execute(ctx, code, countryCode, publication, req.Data); err != nil {
 		handleError(c, err)
 		return
 	}
@@ -181,19 +180,11 @@ func (ctrl *EconomicIndicatorDataController) ImportText(c *gin.Context) {
 	c.JSON(http.StatusOK, results)
 }
 
-func parseIDAndPublication(c *gin.Context) (int64, time.Time, bool) {
-	idStr := c.Param("economicIndicatorId")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse{
-			Status:  http.StatusBadRequest,
-			Error:   "BAD_REQUEST",
-			Message: "invalid economicIndicatorId",
-		})
-		return 0, time.Time{}, false
-	}
-
+func parseCodeAndPublication(c *gin.Context) (countryCode, code string, publication time.Time, ok bool) {
+	countryCode = c.Param("countryCode")
+	code = c.Param("code")
 	pubStr := c.Param("publication")
+
 	publication, err := time.Parse("2006-01-02 15:04:05", pubStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse{
@@ -201,8 +192,7 @@ func parseIDAndPublication(c *gin.Context) (int64, time.Time, bool) {
 			Error:   "BAD_REQUEST",
 			Message: "invalid publication: expected yyyy-MM-dd HH:mm:ss",
 		})
-		return 0, time.Time{}, false
+		return "", "", time.Time{}, false
 	}
-
-	return id, publication, true
+	return countryCode, code, publication, true
 }

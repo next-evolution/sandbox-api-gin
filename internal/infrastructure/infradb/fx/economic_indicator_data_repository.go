@@ -21,7 +21,7 @@ func NewMySQLEconomicIndicatorDataRepository(db *sqlx.DB) fxrepository.EconomicI
 }
 
 type fxEconomicIndicatorDataRecord struct {
-	ID               int64     `db:"id"`
+	Code             string    `db:"code"`
 	CountryCode      string    `db:"countryCode"`
 	Name             string    `db:"name"`
 	Importance       string    `db:"importance"`
@@ -41,8 +41,8 @@ type fxEconomicIndicatorDataRecord struct {
 }
 
 const selectEconomicIndicatorDataColumns = `
-	T.id                                    AS id,
-	C.code                                  AS countryCode,
+	T.code                                  AS code,
+	T.country_code                          AS countryCode,
 	E.importance                            AS importance,
 	C.name                                  AS countryName,
 	C.name_short                            AS countryNameShort,
@@ -59,19 +59,19 @@ const selectEconomicIndicatorDataColumns = `
 	COALESCE(E.unit_of_value, '')           AS unitOfValue,
 	COALESCE(T.memo, '')                    AS memo`
 
-func (r *MySQLEconomicIndicatorDataRepository) buildWhere(id int64, importance, countryCode, publicationBaseDate string) (string, []interface{}) {
+func (r *MySQLEconomicIndicatorDataRepository) buildWhere(code, importance, countryCode, publicationBaseDate string) (string, []interface{}) {
 	where := ``
 	args := make([]interface{}, 0)
-	if id > 0 {
-		where += ` AND T.id = ?`
-		args = append(args, id)
+	if code != "" {
+		where += ` AND T.code = ?`
+		args = append(args, code)
 	}
 	if importance != "" {
 		where += ` AND E.importance = ?`
 		args = append(args, importance)
 	}
 	if countryCode != "" {
-		where += ` AND E.country_code = ?`
+		where += ` AND T.country_code = ?`
 		args = append(args, countryCode)
 	}
 	if publicationBaseDate != "" {
@@ -81,20 +81,20 @@ func (r *MySQLEconomicIndicatorDataRepository) buildWhere(id int64, importance, 
 	return where, args
 }
 
-func (r *MySQLEconomicIndicatorDataRepository) Count(ctx context.Context, id int64, importance, countryCode, publicationBaseDate string) (int, error) {
-	where, args := r.buildWhere(id, importance, countryCode, publicationBaseDate)
+func (r *MySQLEconomicIndicatorDataRepository) Count(ctx context.Context, code, importance, countryCode, publicationBaseDate string) (int, error) {
+	where, args := r.buildWhere(code, importance, countryCode, publicationBaseDate)
 	query := `
-		SELECT COUNT(T.id)
+		SELECT COUNT(*)
 		FROM fx_economic_indicator_data T
-		INNER JOIN fx_economic_indicator E ON E.id = T.id
-		WHERE T.id > 0` + where
+		INNER JOIN fx_economic_indicator E ON E.code = T.code AND E.country_code = T.country_code
+		WHERE 1 = 1` + where
 	var count int
 	err := r.db.GetContext(ctx, &count, query, args...)
 	return count, err
 }
 
-func (r *MySQLEconomicIndicatorDataRepository) Search(ctx context.Context, id int64, importance, countryCode, publicationBaseDate string, page, size int, sortAsc bool) ([]fxmodel.EconomicIndicatorData, error) {
-	where, args := r.buildWhere(id, importance, countryCode, publicationBaseDate)
+func (r *MySQLEconomicIndicatorDataRepository) Search(ctx context.Context, code, importance, countryCode, publicationBaseDate string, page, size int, sortAsc bool) ([]fxmodel.EconomicIndicatorData, error) {
+	where, args := r.buildWhere(code, importance, countryCode, publicationBaseDate)
 	order := `ORDER BY T.publication DESC`
 	if sortAsc {
 		order = `ORDER BY T.publication`
@@ -102,9 +102,9 @@ func (r *MySQLEconomicIndicatorDataRepository) Search(ctx context.Context, id in
 	query := `
 		SELECT ` + selectEconomicIndicatorDataColumns + `
 		FROM fx_economic_indicator_data T
-		INNER JOIN fx_economic_indicator E ON E.id = T.id
-		INNER JOIN fx_country C ON C.code = E.country_code
-		WHERE T.id > 0` + where + ` ` + order + ` LIMIT ? OFFSET ?`
+		INNER JOIN fx_economic_indicator E ON E.code = T.code AND E.country_code = T.country_code
+		INNER JOIN fx_country C ON C.code = T.country_code
+		WHERE 1 = 1` + where + ` ` + order + ` LIMIT ? OFFSET ?`
 	args = append(args, size, (page-1)*size)
 
 	var recs []fxEconomicIndicatorDataRecord
@@ -114,15 +114,15 @@ func (r *MySQLEconomicIndicatorDataRepository) Search(ctx context.Context, id in
 	return toEconomicIndicatorDataList(recs), nil
 }
 
-func (r *MySQLEconomicIndicatorDataRepository) Get(ctx context.Context, id int64, publication time.Time) (*fxmodel.EconomicIndicatorData, error) {
+func (r *MySQLEconomicIndicatorDataRepository) Get(ctx context.Context, code, countryCode string, publication time.Time) (*fxmodel.EconomicIndicatorData, error) {
 	query := `
 		SELECT ` + selectEconomicIndicatorDataColumns + `
 		FROM fx_economic_indicator_data T
-		INNER JOIN fx_economic_indicator E ON E.id = T.id
-		INNER JOIN fx_country C ON C.code = E.country_code
-		WHERE T.id = ? AND T.publication = ?`
+		INNER JOIN fx_economic_indicator E ON E.code = T.code AND E.country_code = T.country_code
+		INNER JOIN fx_country C ON C.code = T.country_code
+		WHERE T.code = ? AND T.country_code = ? AND T.publication = ?`
 	var rec fxEconomicIndicatorDataRecord
-	if err := r.db.GetContext(ctx, &rec, query, id, publication); err != nil {
+	if err := r.db.GetContext(ctx, &rec, query, code, countryCode, publication); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -132,20 +132,20 @@ func (r *MySQLEconomicIndicatorDataRepository) Get(ctx context.Context, id int64
 	return &m, nil
 }
 
-func (r *MySQLEconomicIndicatorDataRepository) Exists(ctx context.Context, id int64, publication time.Time) (bool, error) {
-	query := `SELECT EXISTS(SELECT 1 FROM fx_economic_indicator_data WHERE id = ? AND publication = ?)`
+func (r *MySQLEconomicIndicatorDataRepository) Exists(ctx context.Context, code, countryCode string, publication time.Time) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM fx_economic_indicator_data WHERE code = ? AND country_code = ? AND publication = ?)`
 	var exists bool
-	err := r.db.GetContext(ctx, &exists, query, id, publication)
+	err := r.db.GetContext(ctx, &exists, query, code, countryCode, publication)
 	return exists, err
 }
 
 func (r *MySQLEconomicIndicatorDataRepository) Add(ctx context.Context, data fxmodel.EconomicIndicatorData) error {
 	query := `
 		INSERT INTO fx_economic_indicator_data
-		(id, publication, sub_title, result_value, forecast_value, previous_value, memo)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
+		(code, country_code, publication, sub_title, result_value, forecast_value, previous_value, memo)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	result, err := r.db.ExecContext(ctx, query,
-		data.ID, data.Publication, data.SubTitle,
+		data.Code, data.CountryCode, data.Publication, data.SubTitle,
 		data.ResultValue, data.ForecastValue, data.PreviousValue, data.Memo,
 	)
 	if err != nil {
@@ -170,11 +170,11 @@ func (r *MySQLEconomicIndicatorDataRepository) Update(ctx context.Context, data 
 			forecast_value = ?,
 			previous_value = ?,
 			memo           = ?
-		WHERE id = ? AND publication = ?`
+		WHERE code = ? AND country_code = ? AND publication = ?`
 	result, err := r.db.ExecContext(ctx, query,
 		data.Publication, data.SubTitle, data.ResultValue,
 		data.ForecastValue, data.PreviousValue, data.Memo,
-		data.ID, publication,
+		data.Code, data.CountryCode, publication,
 	)
 	if err != nil {
 		return err
@@ -189,21 +189,22 @@ func (r *MySQLEconomicIndicatorDataRepository) Update(ctx context.Context, data 
 	return nil
 }
 
-func (r *MySQLEconomicIndicatorDataRepository) UpdateID(ctx context.Context, data fxmodel.EconomicIndicatorData, id int64, publication time.Time) error {
+func (r *MySQLEconomicIndicatorDataRepository) UpdateCode(ctx context.Context, data fxmodel.EconomicIndicatorData, code, countryCode string, publication time.Time) error {
 	query := `
 		UPDATE fx_economic_indicator_data SET
-			id             = ?,
+			code           = ?,
+			country_code   = ?,
 			publication    = ?,
 			sub_title      = ?,
 			result_value   = ?,
 			forecast_value = ?,
 			previous_value = ?,
 			memo           = ?
-		WHERE id = ? AND publication = ?`
+		WHERE code = ? AND country_code = ? AND publication = ?`
 	result, err := r.db.ExecContext(ctx, query,
-		data.ID, data.Publication, data.SubTitle, data.ResultValue,
+		data.Code, data.CountryCode, data.Publication, data.SubTitle, data.ResultValue,
 		data.ForecastValue, data.PreviousValue, data.Memo,
-		id, publication,
+		code, countryCode, publication,
 	)
 	if err != nil {
 		return err
@@ -226,10 +227,10 @@ func (r *MySQLEconomicIndicatorDataRepository) DeleteLoad(ctx context.Context) e
 func (r *MySQLEconomicIndicatorDataRepository) InsertLoad(ctx context.Context, data fxmodel.EconomicIndicatorData) error {
 	query := `
 		INSERT INTO fx_economic_indicator_data_load
-		(id, publication, sub_title, result_value, forecast_value, previous_value, memo)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
+		(code, country_code, publication, sub_title, result_value, forecast_value, previous_value, memo)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err := r.db.ExecContext(ctx, query,
-		data.ID, data.Publication, data.SubTitle,
+		data.Code, data.CountryCode, data.Publication, data.SubTitle,
 		data.ResultValue, data.ForecastValue, data.PreviousValue, data.Memo,
 	)
 	return err
@@ -238,27 +239,28 @@ func (r *MySQLEconomicIndicatorDataRepository) InsertLoad(ctx context.Context, d
 func (r *MySQLEconomicIndicatorDataRepository) LoadDiff(ctx context.Context) ([]fxmodel.EconomicIndicatorData, error) {
 	query := `
 		SELECT
-			T.id             AS id,
-			C.code           AS countryCode,
-			E.importance     AS importance,
-			C.name           AS countryName,
-			C.name_short     AS countryNameShort,
-			E.name           AS name,
+			T.code            AS code,
+			T.country_code    AS countryCode,
+			E.importance      AS importance,
+			C.name            AS countryName,
+			C.name_short      AS countryNameShort,
+			E.name            AS name,
 			COALESCE(E.description, '')   AS description,
-			T.publication    AS publication,
-			''               AS publicationDate,
-			''               AS publicationTime,
-			0                AS dayOfWeek,
+			T.publication     AS publication,
+			''                AS publicationDate,
+			''                AS publicationTime,
+			0                 AS dayOfWeek,
 			COALESCE(T.sub_title, '')      AS subTitle,
-			T.result_value   AS resultValue,
+			T.result_value    AS resultValue,
 			COALESCE(T.forecast_value, '') AS forecastValue,
 			COALESCE(T.previous_value, '') AS previousValue,
 			COALESCE(E.unit_of_value, '')  AS unitOfValue,
 			COALESCE(T.memo, '')           AS memo
 		FROM fx_economic_indicator_data T
-		INNER JOIN fx_economic_indicator E ON E.id = T.id
-		INNER JOIN fx_country C ON C.code = E.country_code
-		INNER JOIN fx_economic_indicator_data_load L ON T.id = L.id AND T.publication = L.publication
+		INNER JOIN fx_economic_indicator E ON E.code = T.code AND E.country_code = T.country_code
+		INNER JOIN fx_country C ON C.code = T.country_code
+		INNER JOIN fx_economic_indicator_data_load L
+			ON T.code = L.code AND T.country_code = L.country_code AND T.publication = L.publication
 		WHERE T.result_value != L.result_value
 		   OR T.forecast_value != L.forecast_value
 		   OR T.previous_value != L.previous_value`
@@ -272,10 +274,11 @@ func (r *MySQLEconomicIndicatorDataRepository) LoadDiff(ctx context.Context) ([]
 func (r *MySQLEconomicIndicatorDataRepository) InsertFromLoad(ctx context.Context) error {
 	query := `
 		INSERT INTO fx_economic_indicator_data
-		SELECT L.id, L.publication, L.sub_title, L.result_value, L.forecast_value, L.previous_value, L.memo
+		SELECT L.code, L.country_code, L.publication, L.sub_title, L.result_value, L.forecast_value, L.previous_value, L.memo
 		FROM fx_economic_indicator_data_load L
-		LEFT JOIN fx_economic_indicator_data D ON D.id = L.id AND D.publication = L.publication
-		WHERE D.id IS NULL`
+		LEFT JOIN fx_economic_indicator_data D
+			ON D.code = L.code AND D.country_code = L.country_code AND D.publication = L.publication
+		WHERE D.code IS NULL`
 	_, err := r.db.ExecContext(ctx, query)
 	return err
 }
@@ -290,7 +293,7 @@ func toEconomicIndicatorDataList(recs []fxEconomicIndicatorDataRecord) []fxmodel
 
 func toEconomicIndicatorDataDomain(rec fxEconomicIndicatorDataRecord) fxmodel.EconomicIndicatorData {
 	return fxmodel.EconomicIndicatorData{
-		ID:               rec.ID,
+		Code:             rec.Code,
 		CountryCode:      rec.CountryCode,
 		Name:             rec.Name,
 		Importance:       rec.Importance,

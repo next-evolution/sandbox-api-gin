@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -62,23 +61,13 @@ func (ctrl *EconomicIndicatorController) Search(c *gin.Context) {
 	})
 }
 
-// Get GET /v1/fx/economic-indicator/:countryCode/:id
+// Get GET /v1/fx/economic-indicator/:countryCode/:code
 func (ctrl *EconomicIndicatorController) Get(c *gin.Context) {
 	ctx := c.Request.Context()
 	countryCode := c.Param("countryCode")
-	idStr := c.Param("id")
+	code := c.Param("code")
 
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse{
-			Status:  http.StatusBadRequest,
-			Error:   "BAD_REQUEST",
-			Message: "invalid id",
-		})
-		return
-	}
-
-	dto, err := ctrl.getUseCase.Execute(ctx, countryCode, id)
+	dto, err := ctrl.getUseCase.Execute(ctx, countryCode, code)
 	if err != nil {
 		handleError(c, err)
 		return
@@ -109,21 +98,11 @@ func (ctrl *EconomicIndicatorController) Add(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// Update PUT /v1/fx/economic-indicator/:countryCode/:id
+// Update PUT /v1/fx/economic-indicator/:countryCode/:code
 func (ctrl *EconomicIndicatorController) Update(c *gin.Context) {
 	ctx := c.Request.Context()
 	countryCode := c.Param("countryCode")
-	idStr := c.Param("id")
-
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse{
-			Status:  http.StatusBadRequest,
-			Error:   "BAD_REQUEST",
-			Message: "invalid id",
-		})
-		return
-	}
+	code := c.Param("code")
 
 	var req fxrequest.EconomicIndicatorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -135,7 +114,7 @@ func (ctrl *EconomicIndicatorController) Update(c *gin.Context) {
 		return
 	}
 
-	if err := ctrl.updateUseCase.Execute(ctx, countryCode, id, req.Indicator); err != nil {
+	if err := ctrl.updateUseCase.Execute(ctx, countryCode, code, req.Indicator); err != nil {
 		handleError(c, err)
 		return
 	}

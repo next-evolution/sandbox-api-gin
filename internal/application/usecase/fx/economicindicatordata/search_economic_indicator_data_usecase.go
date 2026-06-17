@@ -29,15 +29,15 @@ func (r EconomicIndicatorDataSearchResult) TotalPage() int {
 	return (r.TotalCount + r.Size - 1) / r.Size
 }
 
-func (uc *SearchEconomicIndicatorDataUseCase) Execute(ctx context.Context, id int64, importance, countryCode, publicationBaseDate string, page, size int, sortAsc bool) (EconomicIndicatorDataSearchResult, error) {
-	count, err := uc.repo.Count(ctx, id, importance, countryCode, publicationBaseDate)
+func (uc *SearchEconomicIndicatorDataUseCase) Execute(ctx context.Context, code, importance, countryCode, publicationBaseDate string, page, size int, sortAsc bool) (EconomicIndicatorDataSearchResult, error) {
+	count, err := uc.repo.Count(ctx, code, importance, countryCode, publicationBaseDate)
 	if err != nil {
 		return EconomicIndicatorDataSearchResult{}, err
 	}
 
 	list := make([]fxdto.EconomicIndicatorDataDto, 0)
 	if count > 0 {
-		items, err := uc.repo.Search(ctx, id, importance, countryCode, publicationBaseDate, page, size, sortAsc)
+		items, err := uc.repo.Search(ctx, code, importance, countryCode, publicationBaseDate, page, size, sortAsc)
 		if err != nil {
 			return EconomicIndicatorDataSearchResult{}, err
 		}

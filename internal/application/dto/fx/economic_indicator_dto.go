@@ -3,7 +3,7 @@ package fxdto
 import fxmodel "sandbox-api-gin/internal/domain/model/fx"
 
 type EconomicIndicatorDto struct {
-	ID               *int64 `json:"id"`
+	Code             string `json:"code" binding:"required"`
 	CountryCode      string `json:"countryCode" binding:"required"`
 	Name             string `json:"name" binding:"required"`
 	Importance       string `json:"importance" binding:"required"`
@@ -15,7 +15,7 @@ type EconomicIndicatorDto struct {
 
 func EconomicIndicatorDtoFromDomain(m fxmodel.EconomicIndicator) EconomicIndicatorDto {
 	return EconomicIndicatorDto{
-		ID:               &m.ID,
+		Code:             m.Code,
 		CountryCode:      m.CountryCode,
 		Name:             m.Name,
 		Importance:       m.Importance,
