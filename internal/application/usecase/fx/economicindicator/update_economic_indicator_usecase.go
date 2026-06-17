@@ -19,16 +19,13 @@ func NewUpdateEconomicIndicatorUseCase(repo fxrepository.EconomicIndicatorReposi
 	return &UpdateEconomicIndicatorUseCase{repo: repo}
 }
 
-func (uc *UpdateEconomicIndicatorUseCase) Execute(ctx context.Context, countryCode string, id int64, dto fxdto.EconomicIndicatorDto) error {
-	existing, err := uc.repo.Get(ctx, id)
+func (uc *UpdateEconomicIndicatorUseCase) Execute(ctx context.Context, countryCode, code string, dto fxdto.EconomicIndicatorDto) error {
+	existing, err := uc.repo.Get(ctx, countryCode, code)
 	if err != nil {
 		return err
 	}
 	if existing == nil {
-		return apperror.NewNotFoundError(fmt.Sprintf("(%s) %d", countryCode, id))
-	}
-	if existing.CountryCode != countryCode {
-		return apperror.NewUpdateError(fmt.Sprintf("(%s) %d", countryCode, id))
+		return apperror.NewNotFoundError(fmt.Sprintf("(%s) %s", countryCode, code))
 	}
 
 	newCountryCode := dto.CountryCode
@@ -43,7 +40,7 @@ func (uc *UpdateEconomicIndicatorUseCase) Execute(ctx context.Context, countryCo
 	}
 
 	toUpdate := fxmodel.EconomicIndicator{
-		ID:          id,
+		Code:        code,
 		CountryCode: newCountryCode,
 		Name:        dto.Name,
 		Importance:  dto.Importance,

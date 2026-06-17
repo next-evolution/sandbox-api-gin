@@ -114,7 +114,7 @@ func (uc *ImportEconomicIndicatorDataUseCase) processFile(
 	} else {
 		slog.Warn("---------- load diff ----------")
 		for _, d := range diffList {
-			slog.Warn("load diff", "id", d.ID, "publication", d.Publication)
+			slog.Warn("load diff", "code", d.Code, "countryCode", d.CountryCode, "publication", d.Publication)
 		}
 	}
 
@@ -260,7 +260,8 @@ func (uc *ImportEconomicIndicatorDataUseCase) parseDataLine(
 	}
 
 	return &fxmodel.EconomicIndicatorData{
-		ID:            indicator.ID,
+		Code:          indicator.Code,
+		CountryCode:   indicator.CountryCode,
 		Publication:   pub,
 		SubTitle:      subTitle,
 		PreviousValue: removeUnitOfValue(elem[4], unitOfValue),

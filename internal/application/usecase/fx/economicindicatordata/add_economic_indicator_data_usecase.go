@@ -19,16 +19,17 @@ func NewAddEconomicIndicatorDataUseCase(repo fxrepository.EconomicIndicatorDataR
 }
 
 func (uc *AddEconomicIndicatorDataUseCase) Execute(ctx context.Context, dto fxdto.EconomicIndicatorDataDto) error {
-	exists, err := uc.repo.Exists(ctx, dto.ID, dto.Publication.Time)
+	exists, err := uc.repo.Exists(ctx, dto.Code, dto.CountryCode, dto.Publication.Time)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return apperror.NewDuplicateError(fmt.Sprintf("%d / %s", dto.ID, dto.Publication.Format("2006-01-02 15:04:05")))
+		return apperror.NewDuplicateError(fmt.Sprintf("(%s) %s / %s", dto.CountryCode, dto.Code, dto.Publication.Format("2006-01-02 15:04:05")))
 	}
 
 	data := fxmodel.EconomicIndicatorData{
-		ID:            dto.ID,
+		Code:          dto.Code,
+		CountryCode:   dto.CountryCode,
 		Publication:   dto.Publication.Time,
 		SubTitle:      dto.SubTitle,
 		ResultValue:   dto.ResultValue,

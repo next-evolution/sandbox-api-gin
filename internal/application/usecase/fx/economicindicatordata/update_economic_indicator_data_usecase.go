@@ -19,8 +19,8 @@ func NewUpdateEconomicIndicatorDataUseCase(repo fxrepository.EconomicIndicatorDa
 	return &UpdateEconomicIndicatorDataUseCase{repo: repo}
 }
 
-func (uc *UpdateEconomicIndicatorDataUseCase) Execute(ctx context.Context, economicIndicatorID int64, publication time.Time, dto fxdto.EconomicIndicatorDataDto) error {
-	existing, err := uc.repo.Get(ctx, economicIndicatorID, publication)
+func (uc *UpdateEconomicIndicatorDataUseCase) Execute(ctx context.Context, code, countryCode string, publication time.Time, dto fxdto.EconomicIndicatorDataDto) error {
+	existing, err := uc.repo.Get(ctx, code, countryCode, publication)
 	if err != nil {
 		return err
 	}
@@ -28,13 +28,14 @@ func (uc *UpdateEconomicIndicatorDataUseCase) Execute(ctx context.Context, econo
 		return apperror.NewNotFoundError(publication.Format("2006/01/02 15:04"))
 	}
 
-	isIDDiff := economicIndicatorID != dto.ID
+	isCodeDiff := code != dto.Code || countryCode != dto.CountryCode
 	isPublicationDiff := !publication.Equal(dto.Publication.Time)
 
 	displayName := buildDisplayName(existing, publication, dto.Publication.Time, isPublicationDiff)
 
 	toUpdate := fxmodel.EconomicIndicatorData{
-		ID:            dto.ID,
+		Code:          dto.Code,
+		CountryCode:   dto.CountryCode,
 		Publication:   dto.Publication.Time,
 		SubTitle:      dto.SubTitle,
 		ResultValue:   dto.ResultValue,
@@ -43,19 +44,19 @@ func (uc *UpdateEconomicIndicatorDataUseCase) Execute(ctx context.Context, econo
 		Memo:          dto.Memo,
 	}
 
-	if isIDDiff {
-		dup, err := uc.repo.Exists(ctx, dto.ID, dto.Publication.Time)
+	if isCodeDiff {
+		dup, err := uc.repo.Exists(ctx, dto.Code, dto.CountryCode, dto.Publication.Time)
 		if err != nil {
 			return err
 		}
 		if dup {
 			return apperror.NewDuplicateError(displayName)
 		}
-		return uc.repo.UpdateID(ctx, toUpdate, economicIndicatorID, publication)
+		return uc.repo.UpdateCode(ctx, toUpdate, code, countryCode, publication)
 	}
 
 	if isPublicationDiff {
-		dup, err := uc.repo.Exists(ctx, dto.ID, dto.Publication.Time)
+		dup, err := uc.repo.Exists(ctx, dto.Code, dto.CountryCode, dto.Publication.Time)
 		if err != nil {
 			return err
 		}
