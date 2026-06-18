@@ -74,7 +74,7 @@ cd ../sandbox-tools/docker && docker compose --env-file .env.compose up -d
 | DB_PASSWORD | s4ndb0x_app | DBパスワード |
 | REDIS_HOST | localhost | Redisホスト |
 | REDIS_PORT | 46379 | Redisポート |
-| JWT_ISSUER1 | https://cognito-idp.ap-northeast-1.amazonaws.com/... | CognitoのIssuer URL |
+| JWT_ISSUER | https://cognito-idp.ap-northeast-1.amazonaws.com/... | CognitoのIssuer URL |
 | JWT_AUDIENCE1/2/3 | Cognito App Client ID | 許可するaudience（複数可） |
 | JWT_ORIGIN1/2 | http://localhost:3000 | CORS許可オリジン（未設定時はCORS無効） |
 | SESSION_TTL | 3600 | セッションTTL（秒）デフォルト3600 |

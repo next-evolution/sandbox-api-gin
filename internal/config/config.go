@@ -16,7 +16,7 @@ type Config struct {
 	RedisHost string
 	RedisPort string
 
-	JWTIssuers   []string
+	JWTIssuer    string
 	JWTAudiences []string
 	JWTOrigins   []string
 
@@ -58,7 +58,7 @@ func Load() *Config {
 		DBPassword:           getEnv("DB_PASSWORD", "s4ndb0x_app"),
 		RedisHost:            getEnv("REDIS_HOST", "localhost"),
 		RedisPort:            getEnv("REDIS_PORT", "46379"),
-		JWTIssuers:           collectEnvs("JWT_ISSUER1", "JWT_ISSUER2"),
+		JWTIssuer:            getEnv("JWT_ISSUER", ""),
 		JWTAudiences:         collectEnvs("JWT_AUDIENCE1", "JWT_AUDIENCE2", "JWT_AUDIENCE3"),
 		JWTOrigins:           collectEnvs("JWT_ORIGIN1", "JWT_ORIGIN2"),
 		SessionTTL:           sessionTTL,

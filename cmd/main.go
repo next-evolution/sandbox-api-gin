@@ -65,8 +65,8 @@ func run() error {
 
 	cfg := config.Load()
 
-	if len(cfg.JWTIssuers) == 0 {
-		return fmt.Errorf("JWT_ISSUER1が設定されていません")
+	if cfg.JWTIssuer == "" {
+		return fmt.Errorf("JWT_ISSUERが設定されていません")
 	}
 
 	// MySQL接続
@@ -100,11 +100,11 @@ func run() error {
 	slog.Info("Redis接続設定完了", "host", cfg.RedisHost, "port", cfg.RedisPort)
 
 	// JWTプロバイダ
-	jwtProvider, err := security.NewJwtProvider(cfg.JWTIssuers[0], cfg.JWTAudiences)
+	jwtProvider, err := security.NewJwtProvider(cfg.JWTIssuer, cfg.JWTAudiences)
 	if err != nil {
 		return fmt.Errorf("JWTプロバイダ初期化エラー: %w", err)
 	}
-	slog.Info("JWTプロバイダ初期化完了", "issuer", cfg.JWTIssuers[0])
+	slog.Info("JWTプロバイダ初期化完了", "issuer", cfg.JWTIssuer)
 
 	// リポジトリ
 	sessionRepo := infraredis.NewRedisSessionRepository(redisClient, cfg.SessionTTL)
