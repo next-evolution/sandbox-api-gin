@@ -11,6 +11,7 @@ internal/
     apperror/                      # カスタムエラー型
     model/                         # ドメインモデル（AuthUser, User, KeyValue）
       fx/                          # FXドメインモデル（TradeEntry, TradePosition, PriceInfo 他）
+        zigzag/                    # ZigZagドメインモデル
     repository/                    # リポジトリインターフェース
       fx/                          # FXリポジトリIF（TradeSimulation, Symbol, Country, EconomicIndicator）
     service/
@@ -30,6 +31,7 @@ internal/
         bardata/                   # バーデータ検索・ステータス UseCase
         economicindicator/         # 経済指標 CRUD UseCase
         economicindicatordata/     # 経済指標データ CRUD + インポート UseCase
+        zigzag/                    # ZigZag 生成・検索 UseCase
   infrastructure/
     infraredis/                    # Redisセッション実装
     infradb/                       # MySQL実装（User）
@@ -95,6 +97,7 @@ userusecase "sandbox-api-gin/internal/application/usecase/user"
 | `internal/application/usecase/fx/bardata/` | `bardata` |
 | `internal/application/usecase/fx/economicindicator/` | `economicindicator` |
 | `internal/application/usecase/fx/economicindicatordata/` | `economicindicatordata` |
+| `internal/application/usecase/fx/zigzag/` | `zigzag` |
 | `internal/infrastructure/infradb/fx/` | `infradbfx` |
 | `internal/infrastructure/external/` | `external` |
 | `internal/application/dto/fx/` | `fxdto` |
