@@ -50,16 +50,19 @@ func (u *LoginUseCase) Execute(ctx context.Context, cmd *command.LoginCommand) (
 		}
 	}
 
-	// adminフラグ付きAuthUserをRedisに保存
+	// admin/approvedフラグ付きAuthUserをRedisに保存
 	adminFlag := false
+	approvedFlag := false
 	if user != nil {
 		adminFlag = user.Admin
+		approvedFlag = user.Approved
 	}
 	authUserWithAdmin := &model.AuthUser{
 		Sub:           authUser.Sub,
 		Email:         authUser.Email,
 		EmailVerified: authUser.EmailVerified,
 		Admin:         adminFlag,
+		Approved:      approvedFlag,
 	}
 	if err := u.sessionRepo.Save(ctx, authUserWithAdmin); err != nil {
 		return nil, err

@@ -33,7 +33,7 @@ internal/
         economicindicatordata/     # 経済指標データ CRUD + インポート UseCase
         zigzag/                    # ZigZag 生成・検索 UseCase
   infrastructure/
-    infraredis/                    # Redisセッション実装
+    infraredis/                    # Redis実装（SessionRepository, MasterCacheRepository）
     infradb/                       # MySQL実装（User）
       fx/                          # FX MySQL実装（TradeSimulation, Symbol, Country, EconomicIndicator）
     external/                      # 外部サービス（GaitameRateService）
@@ -44,6 +44,7 @@ internal/
     controller/                    # HTTPハンドラ（auth_controller.go, user_controller.go, fx_*.go）
     dto/
       request/                     # リクエストDTO
+        admin/                     # 管理者リクエストDTO（UserSearchRequest, UserAdminRequest 他）
         fx/                        # FXリクエストDTO（TradeSimulationRequest, SymbolRequest）
       response/                    # レスポンスDTO（ErrorResponse, ApiResponse など共通型）
         fx/                        # FXレスポンスDTO（BarDataSearchResponse, TradeSimulationResponse 他）
@@ -134,11 +135,14 @@ Javaの `JwtAuthFilter` に相当。
 1. `Authorization: Bearer <token>` からトークン取得
 2. JWKS（CognitoのJWKSエンドポイント）を使ってRS256署名を検証
 3. issuer・audience・有効期限をバリデーション
-4. Redisからadminフラグ付き `AuthUser` を取得（セッションなければJWT由来のAuthUser使用）
-5. Gin Contextに `authUser` キーでセット・セッションTTL更新
+4. Redisからadmin/approvedフラグ付き `AuthUser` を取得
+   - セッションあり → Redis取得・TTL更新
+   - セッションなし → DBからsilent login復元・Redisに保存（`userRepo.FindByUserID`）
+   - セッションなし + DBにユーザーなし → `authUser` をセットしない
+5. `authUser` が取得できた場合のみ Gin Context に `authUser` キーでセット
 
 ### Auth Middleware（`internal/api/middleware/auth_middleware.go`）
 Javaの `AuthInterceptor` に相当。
 
 * Context に `authUser` がなければ 401 を返す
-* ログイン前でも有効なJWTがあればAuthUserはセットされる（ログインAPIはRedisセッション不要）
+* DB登録済みユーザーのみ `authUser` がセットされる（未登録ユーザーはJWT有効でも401）
