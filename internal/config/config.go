@@ -30,6 +30,7 @@ type Config struct {
 	StorageBucket        string
 	StorageFX            string
 	IndicatorExcludeList []string
+	IndicatorStripList []string
 
 	CsvBulkLoadSize int
 	ImportCheckSkip bool
@@ -68,6 +69,7 @@ func Load() *Config {
 		StorageBucket:        getEnv("STORAGE_BUCKET", "/tmp/sandbox"),
 		StorageFX:            getEnv("STORAGE_FX", "fx"),
 		IndicatorExcludeList: splitEnv("INDICATOR_EXCLUDE_LIST"),
+		IndicatorStripList: splitEnv("INDICATOR_STRIP_LIST"),
 		CsvBulkLoadSize:      csvBulkLoadSize,
 		ImportCheckSkip:      os.Getenv("IMPORT_CHECK_SKIP") == "true",
 	}

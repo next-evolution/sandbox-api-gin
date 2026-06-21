@@ -84,6 +84,7 @@ cd ../sandbox-tools/docker && docker compose --env-file .env.compose up -d
 | STORAGE_BUCKET | /tmp/sandbox | ファイル保存先のベースディレクトリ |
 | STORAGE_FX | fx | FX関連ファイルのサブディレクトリ名 |
 | INDICATOR_EXCLUDE_LIST | item1,item2 | 経済指標除外リスト（カンマ区切り、任意） |
+| INDICATOR_STRIP_LIST | 植田和男,黒田東彦 | 経済指標CSVから削除する文字列リスト（カンマ区切り、任意） |
 | CSV_BULK_LOAD_SIZE | 500 | CSVバルクインサートのバッチサイズ デフォルト500 |
 | IMPORT_CHECK_SKIP | false | importCheck（既存レコード0件エラー）をスキップするか デフォルトfalse |
 
