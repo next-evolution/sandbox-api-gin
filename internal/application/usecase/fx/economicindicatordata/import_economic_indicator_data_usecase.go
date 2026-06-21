@@ -26,6 +26,7 @@ type ImportEconomicIndicatorDataUseCase struct {
 	storageBucket        string
 	storageFX            string
 	indicatorExcludeList []string
+	indicatorStripList []string
 }
 
 func NewImportEconomicIndicatorDataUseCase(
@@ -34,6 +35,7 @@ func NewImportEconomicIndicatorDataUseCase(
 	countryRepo fxrepository.CountryRepository,
 	storageBucket, storageFX string,
 	indicatorExcludeList []string,
+	indicatorStripList []string,
 ) *ImportEconomicIndicatorDataUseCase {
 	return &ImportEconomicIndicatorDataUseCase{
 		dataRepo:             dataRepo,
@@ -42,6 +44,7 @@ func NewImportEconomicIndicatorDataUseCase(
 		storageBucket:        storageBucket,
 		storageFX:            storageFX,
 		indicatorExcludeList: indicatorExcludeList,
+		indicatorStripList: indicatorStripList,
 	}
 }
 
@@ -181,6 +184,7 @@ func (uc *ImportEconomicIndicatorDataUseCase) parseFile(
 	var result []fxmodel.EconomicIndicatorData
 
 	for _, line := range lines {
+		line = uc.applyStrip(line)
 		if ptnDate.MatchString(line) {
 			baseDate = toDate(year, line)
 		} else {
@@ -277,6 +281,13 @@ func (uc *ImportEconomicIndicatorDataUseCase) isSkip(line string) bool {
 		}
 	}
 	return false
+}
+
+func (uc *ImportEconomicIndicatorDataUseCase) applyStrip(line string) string {
+	for _, kw := range uc.indicatorStripList {
+		line = strings.ReplaceAll(line, kw, "")
+	}
+	return line
 }
 
 func (uc *ImportEconomicIndicatorDataUseCase) buildCountryMap(ctx context.Context) (map[string]string, error) {

@@ -158,7 +158,7 @@ func run() error {
 	updateEconomicIndicatorDataUseCase := economicindicatordata.NewUpdateEconomicIndicatorDataUseCase(economicIndicatorDataRepo)
 	importEconomicIndicatorDataUseCase := economicindicatordata.NewImportEconomicIndicatorDataUseCase(
 		economicIndicatorDataRepo, economicIndicatorRepo, countryRepo,
-		cfg.StorageBucket, cfg.StorageFX, cfg.IndicatorExcludeList,
+		cfg.StorageBucket, cfg.StorageFX, cfg.IndicatorExcludeList, cfg.IndicatorStripList,
 	)
 
 	// ZigZag
@@ -202,7 +202,7 @@ func run() error {
 	adminUsersController := controller.NewAdminUsersController(searchUsersUseCase, approveUserUseCase, blockUserUseCase, grantAdminUseCase)
 
 	// ミドルウェア
-	jwtMw := middleware.JwtMiddleware(jwtProvider, sessionRepo)
+	jwtMw := middleware.JwtMiddleware(jwtProvider, sessionRepo, userRepo)
 	authMw := middleware.AuthMiddleware()
 
 	// Ginエンジン
