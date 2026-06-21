@@ -5,6 +5,7 @@ type AuthUser struct {
 	Email         string `json:"email"`
 	EmailVerified bool   `json:"emailVerified"`
 	Admin         bool   `json:"admin"`
+	Approved      bool   `json:"approved"`
 }
 
 func (a *AuthUser) IsAdmin() bool {
