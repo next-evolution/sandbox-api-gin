@@ -36,16 +36,22 @@ func Setup(
 		v1Public.GET("/economic-indicator/:countryCode", masterListController.EconomicIndicator)
 	}
 
-	// 認証必須エンドポイント（JWT + Auth middleware）
+	// JWT検証のみ実施するエンドポイント群（認証必須チェックはルートごとに付与）
 	v1 := api.Group("/v1")
 	v1.Use(jwtMiddleware)
-	v1.Use(authMiddleware)
 	{
 		auth := v1.Group("/auth")
 		{
+			// login はJWTが有効であれば到達させる。sandbox_user未登録でも
+			// returnCode:Warn を返す必要があるため authMiddleware は適用しない。
 			auth.POST("/login", authController.Login)
-			auth.POST("/logout-api", authController.Logout)
+			// logout は現状維持（認証必須のまま）
+			auth.POST("/logout-api", authMiddleware, authController.Logout)
 		}
+
+		// これ以降のエンドポイントは認証必須
+		v1.Use(authMiddleware)
+
 		user := v1.Group("/user")
 		{
 			user.GET("", userController.Profile)
