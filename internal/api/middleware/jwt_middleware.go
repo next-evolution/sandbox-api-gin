@@ -61,6 +61,9 @@ func JwtMiddleware(jwtProvider *security.JwtProvider, sessionRepo repository.Ses
 				if err := sessionRepo.Save(ctx, authUser); err != nil {
 					slog.Error("セッション保存エラー", "error", err.Error())
 				}
+			} else {
+				// sandbox_user未登録（初回ログイン）でもJWT由来のauthUserにフォールバックする
+				authUser = jwtAuthUser
 			}
 		}
 
