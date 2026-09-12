@@ -209,16 +209,16 @@ func run() error {
 	gin.SetMode(cfg.GINMode)
 	engine := gin.Default()
 
-	// CORS設定（JWT_ORIGIN1/2で許可オリジンを指定）
-	if len(cfg.JWTOrigins) > 0 {
+	// CORS設定（CORS_ORIGIN1/2で許可オリジンを指定）
+	if len(cfg.CORSOrigins) > 0 {
 		engine.Use(cors.New(cors.Config{
-			AllowOrigins:     cfg.JWTOrigins,
+			AllowOrigins:     cfg.CORSOrigins,
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
 		}))
-		slog.Info("CORS設定完了", "origins", cfg.JWTOrigins)
+		slog.Info("CORS設定完了", "origins", cfg.CORSOrigins)
 	}
 
 	// ルーター設定

@@ -58,6 +58,10 @@ security → domain
 
 ## Getting Started
 
+### 0. 前提条件（Claude Code利用時）
+
+`$SANDBOX_HOME` 直下に `claude-code`（横断仕様ドキュメントフォルダ、Google Driveへのシンボリックリンク）が必要です。`CLAUDE.md` の `@../claude-code/...` importの解決に使用されます。
+
 ### 1. ローカルインフラ起動
 
 MySQL・Redis は `sandbox-tools` リポジトリで管理。
@@ -84,7 +88,7 @@ docker compose --env-file .env.compose up -d
 | `REDIS_PORT` | Redis ポート | `46379` |
 | `JWT_ISSUER1` | Cognito URL | `https://cognito-idp.ap-northeast-1.amazonaws.com/...` |
 | `JWT_AUDIENCE1/2/3` | Cognito App Client ID | — |
-| `JWT_ORIGIN1/2` | 許可オリジン | `http://localhost:3000` |
+| `CORS_ORIGIN1/2` | 許可オリジン | `http://localhost:3000` |
 | `FX_RATE_URL` | Gaitame レート API ベース URL | `https://api.gaitame.com` |
 
 ### 3. ビルド & 起動
