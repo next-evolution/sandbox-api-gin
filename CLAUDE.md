@@ -35,6 +35,13 @@ Java SpringBoot で構築された RestAPI をベースに Go Gin の RestAPI �
 
 ---
 
+## 共通仕様（横断・FE/BE共通の大枠仕様）
+
+@../claude-code/architecture/auth.md
+@../claude-code/architecture/api-design.md
+
+---
+
 ## Build & Run
 
 ```bash
@@ -76,7 +83,7 @@ cd ../sandbox-tools/docker && docker compose --env-file .env.compose up -d
 | REDIS_PORT | 46379 | Redisポート |
 | JWT_ISSUER | https://cognito-idp.ap-northeast-1.amazonaws.com/... | CognitoのIssuer URL |
 | JWT_AUDIENCE1/2/3 | Cognito App Client ID | 許可するaudience（複数可） |
-| JWT_ORIGIN1/2 | http://localhost:3000 | CORS許可オリジン（未設定時はCORS無効） |
+| CORS_ORIGIN1/2 | http://localhost:3000 | CORS許可オリジン（未設定時はCORS無効） |
 | SESSION_TTL | 3600 | セッションTTL（秒）デフォルト3600 |
 | SERVER_PORT | 8080 | サーバーポート デフォルト8080 |
 | GIN_MODE | debug | Ginモード（debug / release / test） |
@@ -251,7 +258,7 @@ func run() error {
 
 ### CORS設定
 
-`JWT_ORIGIN1` / `JWT_ORIGIN2` が設定されている場合のみ CORS ミドルウェアを有効化。
+`CORS_ORIGIN1` / `CORS_ORIGIN2` が設定されている場合のみ CORS ミドルウェアを有効化。
 未設定の場合は CORS なし（同一オリジンのみ許可）。
 
 ```go

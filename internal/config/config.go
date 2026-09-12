@@ -18,7 +18,7 @@ type Config struct {
 
 	JWTIssuer    string
 	JWTAudiences []string
-	JWTOrigins   []string
+	CORSOrigins  []string
 
 	SessionTTL int
 
@@ -61,7 +61,7 @@ func Load() *Config {
 		RedisPort:            getEnv("REDIS_PORT", "46379"),
 		JWTIssuer:            getEnv("JWT_ISSUER", ""),
 		JWTAudiences:         collectEnvs("JWT_AUDIENCE1", "JWT_AUDIENCE2", "JWT_AUDIENCE3"),
-		JWTOrigins:           collectEnvs("JWT_ORIGIN1", "JWT_ORIGIN2"),
+		CORSOrigins:          collectEnvs("CORS_ORIGIN1", "CORS_ORIGIN2"),
 		SessionTTL:           sessionTTL,
 		ServerPort:           getEnv("SERVER_PORT", "8080"),
 		GINMode:              getEnv("GIN_MODE", "debug"),
