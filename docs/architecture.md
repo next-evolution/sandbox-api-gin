@@ -132,7 +132,7 @@ userusecase "sandbox-api-gin/internal/application/usecase/user"
 ### JWT Middleware（`internal/api/middleware/jwt_middleware.go`）
 Javaの `JwtAuthFilter` に相当。
 
-1. `Authorization: Bearer <token>` からトークン取得
+1. トークン取得。`Authorization: Bearer <token>` 優先、無ければ `sandbox_jwt` Cookie（`middleware.JWTCookieName`）を見る
 2. JWKS（CognitoのJWKSエンドポイント）を使ってRS256署名を検証
 3. issuer・audience・有効期限をバリデーション
 4. Redisからadmin/approvedフラグ付き `AuthUser` を取得
@@ -146,3 +146,19 @@ Javaの `AuthInterceptor` に相当。
 
 * Context に `authUser` がなければ 401 を返す
 * DB登録済みユーザーのみ `authUser` がセットされる（未登録ユーザーはJWT有効でも401）
+
+### ログインAPIのクライアント別Cookie発行（`internal/api/controller/auth_controller.go`）
+Javaの `AuthController.loginWeb/loginApp` + `JwtCookieProvider` に相当。ログイン処理自体（`LoginUseCase`）はクライアント種別によらず共通。
+
+* `POST /v1/auth/login/web`: ログイン成功時、リクエストの `Authorization: Bearer` トークン（`middleware.ResolveBearerToken()`）をそのまま `sandbox_jwt` Cookie（`middleware.JWTCookieName`）としてSet-Cookieする。属性は `HttpOnly` / `Secure` / `SameSite=None` / `Path=/` / `MaxAge=SESSION_TTL`（`gin.Context.SetSameSite()` + `SetCookie()`）
+* `POST /v1/auth/login/app`: Cookie発行なし。従来どおりレスポンスボディのみ
+* `POST /v1/auth/logout-api`: `sandbox_jwt` Cookieを `MaxAge=-1`（`Set-Cookie`の`Max-Age=0`＝即時失効）でSet-Cookieして失効させる。クライアント種別を判定せず常に発行する（Flutterはそもそもこの Cookie を使わないため無害）
+
+### CSRF Middleware（`internal/api/middleware/csrf_middleware.go`）
+
+Javaの `SecurityConfig`（`CookieCsrfTokenRepository`）+ `CsrfCookieFilter` に相当。`main.go` でCORSの直後・ルーティングの前にグローバルミドルウェアとして登録する。
+
+1. リクエストの `XSRF-TOKEN` Cookieを読み取り、無ければ `crypto/rand` で32byteのトークンを生成する
+2. 毎リクエストで `XSRF-TOKEN` Cookieを再発行する（`Secure` / `SameSite=None` / `Path=/` / `HttpOnly=false`＝JS側で読み取ってヘッダーに載せ返すため）
+3. `Authorization: Bearer` を使うリクエスト（`middleware.ResolveBearerToken()`が非空。sandbox-app-flutter、および`login/web`・`login/app`自体もBearerで呼ばれるため対象外）と、GET/HEAD/OPTIONSは検証をスキップする
+4. 上記以外（Cookie認証によるPOST/PUT/PATCH/DELETE）は、`X-XSRF-TOKEN` リクエストヘッダーと `XSRF-TOKEN` Cookieの値を`crypto/subtle.ConstantTimeCompare`で比較し、不一致・未設定なら403（`FORBIDDEN`）を返す

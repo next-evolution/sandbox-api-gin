@@ -44,7 +44,8 @@ func Setup(
 		{
 			// login はJWTが有効であれば到達させる。sandbox_user未登録でも
 			// returnCode:Warn を返す必要があるため authMiddleware は適用しない。
-			auth.POST("/login", authController.Login)
+			auth.POST("/login/web", authController.LoginWeb)
+			auth.POST("/login/app", authController.LoginApp)
 			// logout は現状維持（認証必須のまま）
 			auth.POST("/logout-api", authMiddleware, authController.Logout)
 		}
