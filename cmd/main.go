@@ -178,7 +178,7 @@ func run() error {
 	grantAdminUseCase := userusecase.NewGrantAdminUseCase(userRepo)
 
 	// コントローラ
-	authController := controller.NewAuthController(loginUseCase, logoutUseCase)
+	authController := controller.NewAuthController(loginUseCase, logoutUseCase, cfg.SessionTTL)
 	userController := controller.NewUserController(getProfileUseCase, registerUserUseCase, updateUserUseCase)
 	tradeSimulationController := controller.NewTradeSimulationController(tradeSimulationUseCase)
 	masterListController := controller.NewMasterListController(getMasterUseCase)
@@ -214,12 +214,15 @@ func run() error {
 		engine.Use(cors.New(cors.Config{
 			AllowOrigins:     cfg.CORSOrigins,
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", middleware.CSRFHeaderName},
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
 		}))
 		slog.Info("CORS設定完了", "origins", cfg.CORSOrigins)
 	}
+
+	// CSRF対策（Cookie認証のリクエストのみ検証。Bearer方式・GET系はスキップ）
+	engine.Use(middleware.CsrfMiddleware())
 
 	// ルーター設定
 	router.Setup(engine, jwtMw, authMw,

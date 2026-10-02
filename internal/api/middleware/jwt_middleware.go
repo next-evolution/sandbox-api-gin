@@ -13,6 +13,10 @@ import (
 
 const AuthUserKey = "authUser"
 
+// JWTCookieName はReact（Web）向けにJWTを格納するHttpOnly Cookie名。
+// JwtCookieProvider.COOKIE_NAME（springboot）に合わせる。
+const JWTCookieName = "sandbox_jwt"
+
 // JwtMiddleware はJWTを検証してAuthUserをコンテキストにセットする。
 // JwtAuthFilterに相当する処理。
 func JwtMiddleware(jwtProvider *security.JwtProvider, sessionRepo repository.SessionRepository, userRepo repository.UserRepository) gin.HandlerFunc {
@@ -77,8 +81,21 @@ func JwtMiddleware(jwtProvider *security.JwtProvider, sessionRepo repository.Ses
 	}
 }
 
-// resolveToken はAuthorizationヘッダーからBearerトークンを取り出す
+// resolveToken はAuthorizationヘッダー優先、無ければCookieからトークンを取り出す。
+// JwtAuthFilter.resolveToken()（springboot）に相当。
 func resolveToken(c *gin.Context) string {
+	if token := ResolveBearerToken(c); token != "" {
+		return token
+	}
+	if cookie, err := c.Cookie(JWTCookieName); err == nil {
+		return cookie
+	}
+	return ""
+}
+
+// ResolveBearerToken はAuthorizationヘッダーからBearerトークンを取り出す。
+// BearerTokenResolver.resolve()（springboot）に相当。ログイン時のCookie発行に使う。
+func ResolveBearerToken(c *gin.Context) string {
 	auth := c.GetHeader("Authorization")
 	if strings.HasPrefix(auth, "Bearer ") {
 		return auth[7:]

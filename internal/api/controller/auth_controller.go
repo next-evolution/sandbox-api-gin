@@ -18,17 +18,45 @@ import (
 type AuthController struct {
 	loginUseCase  *userusecase.LoginUseCase
 	logoutUseCase *userusecase.LogoutUseCase
+	sessionTTL    int
 }
 
-func NewAuthController(loginUseCase *userusecase.LoginUseCase, logoutUseCase *userusecase.LogoutUseCase) *AuthController {
+func NewAuthController(loginUseCase *userusecase.LoginUseCase, logoutUseCase *userusecase.LogoutUseCase, sessionTTL int) *AuthController {
 	return &AuthController{
 		loginUseCase:  loginUseCase,
 		logoutUseCase: logoutUseCase,
+		sessionTTL:    sessionTTL,
 	}
 }
 
-// Login POST /v1/auth/login
-func (ctrl *AuthController) Login(c *gin.Context) {
+// LoginWeb POST /v1/auth/login/web
+// sandbox-spa-react（Web）向け。ログイン成立前はCookieが無いためAuthorizationヘッダーで受け取り、
+// 成功時はJWTをHttpOnly CookieとしてSet-Cookieする（レスポンスボディにトークンは含めない）。
+func (ctrl *AuthController) LoginWeb(c *gin.Context) {
+	body, ok := ctrl.login(c)
+	if !ok {
+		return
+	}
+
+	if token := middleware.ResolveBearerToken(c); token != "" {
+		c.SetSameSite(http.SameSiteNoneMode)
+		c.SetCookie(middleware.JWTCookieName, token, ctrl.sessionTTL, "/", "", true, true)
+	}
+
+	c.JSON(http.StatusOK, body)
+}
+
+// LoginApp POST /v1/auth/login/app
+// sandbox-app-flutter向け。従来どおりBearer方式のみ・Cookie発行は行わない。
+func (ctrl *AuthController) LoginApp(c *gin.Context) {
+	body, ok := ctrl.login(c)
+	if !ok {
+		return
+	}
+	c.JSON(http.StatusOK, body)
+}
+
+func (ctrl *AuthController) login(c *gin.Context) (response.LoginResponse, bool) {
 	ctx := c.Request.Context()
 	authUser := getAuthUser(c)
 
@@ -39,7 +67,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 			Error:   "BAD_REQUEST",
 			Message: err.Error(),
 		})
-		return
+		return response.LoginResponse{}, false
 	}
 
 	cmd := &command.LoginCommand{
@@ -50,7 +78,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 	userDto, err := ctrl.loginUseCase.Execute(ctx, cmd)
 	if err != nil {
 		handleError(c, err)
-		return
+		return response.LoginResponse{}, false
 	}
 
 	returnCode := response.ReturnCodeOk
@@ -58,10 +86,10 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		returnCode = response.ReturnCodeWarn
 	}
 
-	c.JSON(http.StatusOK, response.LoginResponse{
+	return response.LoginResponse{
 		ApiResponse: response.ApiResponse{ReturnCode: returnCode},
 		User:        userDto,
-	})
+	}, true
 }
 
 // Logout POST /v1/auth/logout-api
@@ -84,6 +112,10 @@ func (ctrl *AuthController) Logout(c *gin.Context) {
 		EncodedUserID: req.UserID,
 	}
 	ctrl.logoutUseCase.Execute(ctx, cmd)
+
+	// sandbox-spa-react（Web）向けCookieを失効させる。sandbox-app-flutter（App）はCookie未使用のため無害
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie(middleware.JWTCookieName, "", -1, "/", "", true, true)
 
 	c.JSON(http.StatusOK, response.ApiResponse{ReturnCode: response.ReturnCodeOk})
 }

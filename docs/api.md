@@ -9,21 +9,36 @@
 
 | メソッド | パス | 説明 | Redisセッション |
 |---|---|---|---|
-| POST | /api/v1/auth/login | ログイン | 不要（JWT検証のみ） |
+| POST | /api/v1/auth/login/web | ログイン（sandbox-spa-react向け） | 不要（JWT検証のみ） |
+| POST | /api/v1/auth/login/app | ログイン（sandbox-app-flutter向け） | 不要（JWT検証のみ） |
 | POST | /api/v1/auth/logout-api | ログアウト | 必要 |
 
-### POST /api/v1/auth/login
+### POST /api/v1/auth/login/web
 
-- `Authorization: Bearer <token>` 必須
+- `Authorization: Bearer <token>` 必須（ログイン成立前はCookieが無いため）
 - リクエストボディの `email`（Base64）と JWT の email が一致しない場合は 401
 - DBでユーザーを照会し、blocked なら 401
 - 成功時は Redis にセッション保存、UserDto を返す
+- 成功時、リクエストの `Authorization: Bearer` トークンをそのまま `sandbox_jwt` という名前のHttpOnly Cookieとして`Set-Cookie`する（`Secure`・`SameSite=None`・`Path=/`・`MaxAge=SESSION_TTL`）。レスポンスボディにトークンは含めない
+
+### POST /api/v1/auth/login/app
+
+- `Authorization: Bearer <token>` 必須
+- ログインロジックは `/login/web` と共通（`LoginUseCase`）。Cookie発行は行わず、従来どおりレスポンスボディにUserDtoを返すのみ
 
 ### POST /api/v1/auth/logout-api
 
 - `Authorization: Bearer <token>` 必須・Redis セッション必須
 - リクエストボディの `userId`（Base64）のセッションを Redis から削除
 - エラーは握りつぶす（クライアント側で Cognito ログアウト済みのため）
+- `sandbox_jwt` Cookieを`MaxAge=0`でSet-Cookieして失効させる（クライアント種別を問わず常に発行。sandbox-app-flutterはCookie未使用のため無害）
+
+### CSRF対策
+
+Cookie認証（sandbox-spa-react向け）はCSRFトークンの検証が必須。`Authorization: Bearer`を使うリクエスト（sandbox-app-flutter、および`login/web`・`login/app`自体）とGET/HEAD/OPTIONSは検証対象外。
+
+- 全リクエストで`XSRF-TOKEN`Cookie（`Secure`・`SameSite=None`・`Path=/`・JSから読み取れるよう`HttpOnly=false`）を発行する
+- POST/PUT/PATCH/DELETEをCookie認証で呼ぶ場合、`XSRF-TOKEN`Cookieと同じ値を`X-XSRF-TOKEN`リクエストヘッダーに載せる必要がある。一致しない・未設定の場合は403（`FORBIDDEN`）
 
 ---
 
